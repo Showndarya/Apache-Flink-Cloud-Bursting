@@ -8,6 +8,11 @@ Design Document | Team 6 </h4>
     - **Target audience**:  people who will benefit from solving this problem include organizations that use Apache Flink for real-time data processing, particularly in cases where the workload can fluctuate rapidly. This solution can help to improve the reliability and performance of these systems, and make them more scalable and cost-effective. Additionally, this solution can benefit developers and data scientists who use Apache Flink, by providing them with a more robust and flexible tool for processing large amounts of data in real-time.
 2. **Proposed Solution:**
 3. **Expectations:**
+   
+    We choose to implement a simple architecture first and incrementally add functionalities and variations to it later. The first version is expected to be delivered in the mid-term which comprises only a basic functional Flink pipeline and a node connecting to AWS Lambda Function. This approach is fast to kick start and flexible for future evolutions. During the first phase of this project, we expect every member of our team will have a  rudimentary understanding of Flink and Lambda Function regardless of their roles and there should be no blocker during this process.
+
+   An alternative approach is developing the fully functional cloud burst mechanism from scratch. The advantage of this approach is that it reduces the overall workload. However, this introduces more complexity in project management and might produce more workloads in late stage development.
+
 4. **Experimental Plan:** <br />
     > Assumptions: 
     - The system is fault tolerant. 
