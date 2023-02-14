@@ -9,16 +9,16 @@ Design Document | Team 6 </h4>
 ## 2. **Proposed Solution:**
 > ### Components:
 > + Source
-    >   + Nexmark
-    >   + Yahoo Streaming Benchmark
+  >   + Nexmark
+  >   + Yahoo Streaming Benchmark
 > + Operator
-    >   + Flatmap in flink(Java)
-    >   + Flatmap in flink(Python)
+  >   + Flatmap in flink(Java)
+  >   + Flatmap in flink(Python)
 > + Cloud
-    >   + AWS Lambda Function
-    >   + Azure Functions
+  >   + AWS Lambda Function
+  >   + Azure Functions
 > + Sink
-    >   + Any operator or sink
+  >   + Any operator or sink
 >
 > ### Explain:
 > The data is generated from one of the source, and is processed in the operator. Finally,
