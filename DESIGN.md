@@ -2,7 +2,7 @@
 Design Document | Team 6 </h4>
 <hr />
 
-1. **Problem statement:** 
+## 1. **Problem statement:** 
     - **Problem**:  that this project aims to address is to provide a solution for handling sudden spikes in workload in Apache Flink applications. This is an important problem because Apache Flink is a distributed stream processing framework that is designed to handle large amounts of data in real-time. However, when the input rate exceeds the processing capacity, the system can become overwhelmed, leading to increased latency, decreased performance, and even failures.
     - **Technique**:  The cloud bursting technique is an alternative to back-pressure, which is a mechanism that slows down the input rate when the system is overwhelmed. Instead, cloud bursting allows the excess workload to be offloaded to a cloud provider, such as AWS, where it can be processed in parallel. This can help to ensure that the system continues to operate at a high level of performance, even when there is a sudden spike in workload.
     - **Target audience**:  people who will benefit from solving this problem include organizations that use Apache Flink for real-time data processing, particularly in cases where the workload can fluctuate rapidly. This solution can help to improve the reliability and performance of these systems, and make them more scalable and cost-effective. Additionally, this solution can benefit developers and data scientists who use Apache Flink, by providing them with a more robust and flexible tool for processing large amounts of data in real-time.
@@ -34,13 +34,13 @@ Design Document | Team 6 </h4>
 > 3. We choose to offload event to cloud, thus we can intuitively observe the difference of workload between
      > using only operator and using cloudburst technique.
 
-3. **Expectations:**
+## 3. **Expectations:**
    
     We choose to implement a simple architecture first and incrementally add functionalities and variations to it later. The first version is expected to be delivered in the mid-term which comprises only a basic functional Flink pipeline and a node connecting to AWS Lambda Function. This approach is fast to kick start and flexible for future evolutions. During the first phase of this project, we expect every member of our team will have a  rudimentary understanding of Flink and Lambda Function regardless of their roles and there should be no blocker during this process.
 
    An alternative approach is developing the fully functional cloud burst mechanism from scratch. The advantage of this approach is that it reduces the overall workload. However, this introduces more complexity in project management and might produce more workloads in late stage development.
 
-4. **Experimental Plan:** <br />
+## 4. **Experimental Plan:** <br />
     > Assumptions: 
     - The system is fault tolerant. 
     - The system is very secure and doesn't need any additional security features <br />
@@ -66,13 +66,13 @@ Design Document | Team 6 </h4>
       - Working with more complicated dataflow graphs, including stateful and stateless operators
 
 
-5. **Success Indicators:**
+## 5. **Success Indicators:**
     - Data flow pipline in flink works as it was intended without data/packet loss.
     - Cloud bursting technique should improve the performance of the entire dataflow with respect to latency and act as an alternative to back pressure.
     - Architecture tuned enough to make the best decisions on when to offload the data packets to the cloud function without incurring more processing delay than the original architecture.
     - Devise a method to handle data merge and data propagation with respect to both stateful and stateless operators without loss of order or data.
     - Cloud function instances are created/destroyed based on requirement, reducing cost and resource utilization
-6. **Task assignment:**
+## 6. **Task assignment:**
 
 | Task            | Subtask                                               |  Assigned To  |
 | :--------------- |:----------------------------------------------------- |:-------------:|
