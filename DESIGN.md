@@ -3,9 +3,9 @@ Design Document | Team 6 </h4>
 <hr />
 
 ## 1. **Problem statement:** 
-    - **Problem**:  that this project aims to address is to provide a solution for handling sudden spikes in workload in Apache Flink applications. This is an important problem because Apache Flink is a distributed stream processing framework that is designed to handle large amounts of data in real-time. However, when the input rate exceeds the processing capacity, the system can become overwhelmed, leading to increased latency, decreased performance, and even failures.
-    - **Technique**:  The cloud bursting technique is an alternative to back-pressure, which is a mechanism that slows down the input rate when the system is overwhelmed. Instead, cloud bursting allows the excess workload to be offloaded to a cloud provider, such as AWS, where it can be processed in parallel. This can help to ensure that the system continues to operate at a high level of performance, even when there is a sudden spike in workload.
-    - **Target audience**:  people who will benefit from solving this problem include organizations that use Apache Flink for real-time data processing, particularly in cases where the workload can fluctuate rapidly. This solution can help to improve the reliability and performance of these systems, and make them more scalable and cost-effective. Additionally, this solution can benefit developers and data scientists who use Apache Flink, by providing them with a more robust and flexible tool for processing large amounts of data in real-time.
+  - **Problem**:  that this project aims to address is to provide a solution for handling sudden spikes in workload in Apache Flink applications. This is an important problem because Apache Flink is a distributed stream processing framework that is designed to handle large amounts of data in real-time. However, when the input rate exceeds the processing capacity, the system can become overwhelmed, leading to increased latency, decreased performance, and even failures.
+  - **Technique**:  The cloud bursting technique is an alternative to back-pressure, which is a mechanism that slows down the input rate when the system is overwhelmed. Instead, cloud bursting allows the excess workload to be offloaded to a cloud provider, such as AWS, where it can be processed in parallel. This can help to ensure that the system continues to operate at a high level of performance, even when there is a sudden spike in workload. 
+  - **Target audience**:  people who will benefit from solving this problem include organizations that use Apache Flink for real-time data processing, particularly in cases where the workload can fluctuate rapidly. This solution can help to improve the reliability and performance of these systems, and make them more scalable and cost-effective. Additionally, this solution can benefit developers and data scientists who use Apache Flink, by providing them with a more robust and flexible tool for processing large amounts of data in real-time.
 ## 2. **Proposed Solution:**
 > ### Components:
 > + Source
@@ -36,9 +36,13 @@ Design Document | Team 6 </h4>
 
 ## 3. **Expectations:**
    
-    We choose to implement a simple architecture first and incrementally add functionalities and variations to it later. The first version is expected to be delivered in the mid-term which comprises only a basic functional Flink pipeline and a node connecting to AWS Lambda Function. This approach is fast to kick start and flexible for future evolutions. During the first phase of this project, we expect every member of our team will have a  rudimentary understanding of Flink and Lambda Function regardless of their roles and there should be no blocker during this process.
+    We choose to implement a simple architecture first and incrementally add functionalities and variations to it later. 
+  
+    The first version is expected to be delivered in the mid-term which comprises only a basic functional Flink pipeline and a node connecting to AWS Lambda Function. 
+  
+    This approach is fast to kick start and flexible for future evolutions. During the first phase of this project, we expect every member of our team will have a  rudimentary understanding of Flink and Lambda Function regardless of their roles and there should be no blocker during this process.
 
-   An alternative approach is developing the fully functional cloud burst mechanism from scratch. The advantage of this approach is that it reduces the overall workload. However, this introduces more complexity in project management and might produce more workloads in late stage development.
+    An alternative approach is developing the fully functional cloud burst mechanism from scratch. The advantage of this approach is that it reduces the overall workload. However, this introduces more complexity in project management and might produce more workloads in late stage development.
 
 ## 4. **Experimental Plan:** <br />
     > Assumptions: 
@@ -60,7 +64,7 @@ Design Document | Team 6 </h4>
    - Measure the latency of offloading the work to lambda function
    > Step 2 
    
-   After implementing the first prototype in step 1, we plan to evaluate our streaming pipeline by -
+   After implementing the first prototype in step 1, we plan to evaluate our streaming pipeline by
       - Connecting the lambda function to the source or to the sink instead of the operator
       - Considering different language implementations on the lambda function(like python, Java)
       - Working with more complicated dataflow graphs, including stateful and stateless operators
@@ -74,7 +78,7 @@ Design Document | Team 6 </h4>
     - Cloud function instances are created/destroyed based on requirement, reducing cost and resource utilization
 ## 6. **Task assignment:**
 
-| Task            | Subtask                                               |  Assigned To  |
+| **Task**            | **Subtask**                                               |  **Assigned To**  |
 | :--------------- |:----------------------------------------------------- |:-------------:|
 | Prerequisites:  | 1)how to generate generic data type for flatmap       |  All          |
 | src->tokenizer->fmap          | 2)read through flink documentation      |  Team         |
