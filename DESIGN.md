@@ -76,6 +76,8 @@ Design Document | Team 6 </h4>
     - Architecture tuned enough to make the best decisions on when to offload the data packets to the cloud function without incurring more processing delay than the original architecture.
     - Devise a method to handle data merge and data propagation with respect to both stateful and stateless operators without loss of order or data.
     - Cloud function instances are created/destroyed based on requirement, reducing cost and resource utilization
+
+
 ## 6. **Task assignment:**
 
 | **Task**            | **Subtask**                                               |  **Assigned To**  |
@@ -119,3 +121,4 @@ Design Document | Team 6 </h4>
 |                 |                                                       |  Members      |
 |                 |                                                       |               |
 
+The task distribution was made keeping in mind the strengths and weaknesses of each team member. All of us collectively have some Java coding experience whereas Flink and Stream processing is a new area that we are delving into. On the basis of this, we decided to perform some of the tasks as a group. The tasks assigned individually are the ones we believe can be performed parallely where multiple group members perform separate tasks which can then be integrated. Having said this, we have considered that any of us might face difficulty in the area we have assigned ourselves and will redistribute or discuss accordingly whenever required. 
