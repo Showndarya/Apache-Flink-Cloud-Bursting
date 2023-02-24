@@ -35,14 +35,14 @@ Design Document | Team 6 </h4>
      > using only operator and using cloudburst technique.
 
 ## 3. **Expectations:**
-   
-    We choose to implement a simple architecture first and incrementally add functionalities and variations to it later. 
-  
-    The first version is expected to be delivered in the mid-term which comprises only a basic functional Flink pipeline and a node connecting to AWS Lambda Function. 
-  
-    This approach is fast to kick start and flexible for future evolutions. During the first phase of this project, we expect every member of our team will have a  rudimentary understanding of Flink and Lambda Function regardless of their roles and there should be no blocker during this process.
 
-    An alternative approach is developing the fully functional cloud burst mechanism from scratch. The advantage of this approach is that it reduces the overall workload. However, this introduces more complexity in project management and might produce more workloads in late stage development.
+    When a bursting workload happens, we expect our solution will successfully detect the bursting input stream and locate the bottleneck node.
+    
+    Then our solution will decide whether cloud bursting is necessary and will spawn lambda functions to handle the excess load.
+    
+    We expect our solution will improve the bottleneck node and achieve better performance than backpressure in terms of latency, througput and processing time of the node.
+    
+    Therefore, our solution will provide a more efficient and scalable approach compared to backpressure mechanisms.
 
 ## 4. **Experimental Plan:** <br />
     > Assumptions: 
