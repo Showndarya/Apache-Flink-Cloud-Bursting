@@ -22,17 +22,18 @@ Design Document | Team 6 </h4>
 >
 > ### Explain:
 > The data is generated from one of the source, and is processed in the operator. Finally,
-> the result is emitted to the sink. Flink has metrics to sense the high traffic, and then it offload half
-> of the workload to the lambda function on the cloud. After the computation is done in the lambda function,
+> the result is emitted to the sink. Flink metrics can be used to detect the traffic of the input event stream. 
+> We might use metrics like JVM heap usage, event input rate to detect the traffic in the operator. And based on these 
+> metrics, we might determine the suitable offloading portion based on our experiment. After the computation is done in the lambda function,
 > it sends the result back to the operator. Finally, the operator sends the data to the sink or another operator.
 >
 > ### Why is this suitable:
 > 1. We choose flatmap as a start because it is stateless. We don't need to consider
-     > about aggregation operation and order of the event.
+  aggregation operation and order of the event.
 > 2. We choose to send the event from operator to cloud and send back data from cloud to operator.
-     > Because it is easier.
+  Because it is easier.
 > 3. We choose to offload event to cloud, thus we can intuitively observe the difference of workload between
-     > using only operator and using cloudburst technique.
+  using only operator and using cloudburst technique.
 
 ## 3. **Expectations:**
 
