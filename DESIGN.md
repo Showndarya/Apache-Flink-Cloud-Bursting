@@ -37,13 +37,13 @@ Design Document | Team 6 </h4>
 
 ## 3. **Expectations:**
 
-    When a bursting workload happens, we expect our solution will successfully detect the bursting input stream and locate the bottleneck node.
+  - When a bursting workload happens, we expect our solution will successfully detect the bursting input stream and locate the bottleneck node.
     
-    Then our solution will decide whether cloud bursting is necessary and will spawn lambda functions to handle the excess load.
+  - Then our solution will decide whether cloud bursting is necessary and will spawn lambda functions to handle the excess load.
     
-    We expect our solution will improve the bottleneck node and achieve better performance than backpressure in terms of latency, througput and processing time of the node.
+  - We expect our solution will improve the bottleneck node and achieve better performance than backpressure in terms of latency, througput and processing time of the node.
     
-    Therefore, our solution will provide a more efficient and scalable approach compared to backpressure mechanisms.
+  - Therefore, our solution will provide a more efficient and scalable approach compared to backpressure mechanisms.
 
 ## 4. **Experimental Plan:** <br />
     > Assumptions: 
@@ -72,11 +72,17 @@ Design Document | Team 6 </h4>
 
 
 ## 5. **Success Indicators:**
-    - Data flow pipline in flink works as it was intended without data/packet loss.
-    - Cloud bursting technique should improve the performance of the entire dataflow with respect to latency and act as an alternative to back pressure.
-    - Architecture tuned enough to make the best decisions on when to offload the data packets to the cloud function without incurring more processing delay than the original architecture.
-    - Devise a method to handle data merge and data propagation with respect to both stateful and stateless operators without loss of order or data.
-    - Cloud function instances are created/destroyed based on requirement, reducing cost and resource utilization
+  - Data flow pipline in flink works as it was intended without data/packet loss.
+  - Cloud bursting technique should improve the performance of the entire dataflow with respect to latency and act as an alternative to back pressure.
+  - Architecture tuned enough to make the best decisions on when to offload the data packets to the cloud function without incurring more processing delay than the original architecture.
+  - Devise a method to handle data merge and data propagation with respect to both stateful and stateless operators without loss of order or data.
+  - Cloud function instances are created/destroyed based on requirement, reducing cost and resource utilization
+  - > Intermidiate milestones:
+    - Setting up the basic Flink pipeline with 1 stateles operator and connecting the operator to the lambda function to experiment with the performance and scenarios.
+    - Extending the Flink pipeline setup to test the setup against 1 stateful operator.
+    - Experimenting with the setup of cloud bursting with a combination of stateful and stateless operators (operator chaining). Identifying the operator causing the bottleneck before attaching the lambda function would be an additional step
+    - Experimenting with the setup with complicated dataflow graphs to estimate throughput improvement, latency improvement and overall performance impact of the cloud bursting technique.
+     
 
 
 ## 6. **Task assignment:**
