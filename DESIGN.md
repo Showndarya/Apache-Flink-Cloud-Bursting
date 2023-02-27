@@ -38,41 +38,56 @@ Design Document | Team 6 </h4>
 
 ## 3. **Expectations:**
 
-    When a bursting workload happens, we expect our solution will detect the bursting input stream and locate the bottleneck node.
-    Then our solution will decide whether cloud bursting is necessary and will spawn lambda functions to handle the excess load.
-    We expect our solution will reduce the burden on the bottleneck node and achieve better performance than backpressure and is more efficient and scalable.
-    Specifically, we expect our solution will successfully solve the congestion during bursting moment and compared with backpressure, it will have
-        1). smaller latency.
-        2). greater throughput.
-        3). faster processing time on bottleneck node. 
+  - When a bursting workload happens, we expect our solution will detect the bursting input stream and locate the bottleneck node.
+  - Then our solution will decide whether cloud bursting is necessary and will spawn lambda functions to handle the excess load.
+  - We expect our solution will reduce the burden on the bottleneck node and achieve better performance than backpressure and is more efficient and scalable.
+  - Specifically, we expect our solution will successfully solve the congestion during bursting moment and compared with backpressure, it will have
+    1. smaller latency.
+    2. greater throughput.
+    3. faster processing time on bottleneck node. 
 
 ## 4. **Experimental Plan:** <br />
   > ### Assumptions: 
-  - The system is fault tolerant. 
+  - The system is fault tolerant
   - The system is very secure and doesn't need any additional security features <br />
-    We do plan to incorporate all of the above in our future work
-   
-   > ### Step 1
+  - Based on the progress of the project, we might add or remove some metrics/experiments
+    We do plan to incorporate all of the above in our future work.
+  > ### Step 1
    
    We will start with a subsystem of the problem,
-   ![basic design](basic%20design.png)
-   <br />
-   For the above figure, we have the following steps - 
-   - We consider a flatmap that just tokenizes text as our operator
-   - Find out the metrics affecting the streaming pipeline
-   - Register our lambda function on aws
-   - Connect our lambda function to our operator
-   - Detect when queue fills up for tokenizer(flat map) and direct half of the load to our lambda function
-   - Merge the results produced by the operator and the lambda function
-   - Measure the latency of offloading the work to lambda function
-   
-   > ### Step 2 
-   
-   After implementing the first prototype in step 1, we plan to evaluate our streaming pipeline by
-      - Connecting the lambda function to the source or to the sink instead of the operator
-      - Considering different language implementations on the lambda function(like python, Java)
-      - Working with more complicated dataflow graphs, including stateful and stateless operators
+   ![basic design](basic%20design.png)<br />
+   For the above figure, we have the following steps - <br />
+    Experimental Setup - <br />
+   - We consider a flat map that tokenizes text as our operator. For the first milestone, we consider that our operators are stateless.
+   - We generate random data using Flink's 'RandomSource' as a source, to generate random data, and Flink's 'ThrottleFunction' to control the rate at which the data is emitted.
+   - We will use the following metrics provided by Flink to detect if the operator is overloaded -
+     - Input/Output Rates: An operator's input/output rates can be monitored to detect if the operator receives more data than it can handle. If the input rate exceeds the output rate, it may indicate that the operator is overloaded.
+     - Processing Time: The processing time metric measures the time an operator takes to process a single record. If the processing time is high, it may indicate that the operator is overloaded.
+     - Memory Usage: Memory usage metrics can monitor the amount of memory an operator uses. If an operator is using too much memory, it may indicate that it is overloaded.
+     - Backpressure: Flink's backpressure mechanism can detect whether an operator receives more data than it can process. If an operator is experiencing backpressure, it may indicate that it is overloaded.
+   - Register our lambda function on AWS
+   - Connect our lambda function to flat map operator
+    Experiments - <br />
+    The below experiments are proposed based on the above solution and are subject to change as we progress. <br />
+   - By comparing the metrics defined above, we can detect whether the flatMap function is processing records at the same rate at which they are arriving or whether it is falling behind. We detect the threshold at which the operator starts having backpressure and formulate an expression based on the number of nodes, operator type, and the metrics defined above. <br />
+     The threshold might vary based on the - 
+     1. the dataflow graph 
+     2. sources
+     3. input rate
+     We record the processing time the flat map uses using Flink's built-in histogram metric. If the processing time histogram exceeds a certain threshold, we launch our lambda function and offload work to it. <br />
+     While offloading, we need to experiment with the following parameters -
+     - Latency Test - We define latency based on the - 
+       1. Time taken to send data to cloud lambda instance,
+       2. Bringing up the aws container to run the lamda function on,
+       3. Carry out the computation, 
+       4. Sending the data downstream,
+       5. Merge the results produced by the operator and the lambda function. 
+       We compare this latency against the scenario when we are not using cloud bursting at all.
+     - Throughput Test -Analyzing the effect of using cloud bursting on throughput. We calculate the effect of cloud bursting on the amount of backpressure the pipeline faces on increased loads compared to the original pipeline(without cloud bursting).<br />
+       To perform a throughput and latency test on a Flink job, we will use Flink's built-in benchmarking tool('Benchmark') to measure the processing rate and latency of a Flink job under different conditions. The 'BenchmarkConfig' class is used to configure the benchmarking tool with the desired parameters, such as the job name, the number of task managers and the parallelism of the job, the number of warmup and benchmark iterations, and the interval between iterations. The Benchmark.runWithConfig() method runs the Flink job and measures its performance using the configured benchmarking parameters. The resulting BenchmarkResult object contains the measured throughput and latency of the job.
+   > ### Step 2
 
+  - After working with one stateless operator, we will experiment with stateful operators and move on to graphs with operator chaining of both stateless and stateful and, finally, with more complicated dataflow graphs such as with multiple operators, along with trying to reduce CPU/memory utilization.
 
 ## 5. **Success Indicators:**
   - Data flow pipline in flink works as it was intended without data/packet loss.
@@ -85,16 +100,14 @@ Design Document | Team 6 </h4>
     - Extending the Flink pipeline setup to test the setup against 1 stateful operator.
     - Experimenting with the setup of cloud bursting with a combination of stateful and stateless operators (operator chaining). Identifying the operator causing the bottleneck before attaching the lambda function would be an additional step
     - Experimenting with the setup with complicated dataflow graphs to estimate throughput improvement, latency improvement and overall performance impact of the cloud bursting technique.
-     
-
 
 ## 6. **Task assignment:**
 
 | **Task**            | **Subtask**                                               |  **Assigned To**  |
 | :--------------- |:----------------------------------------------------- |:-------------:|
-| Prerequisites:  | 1)how to generate generic data type for flatmap       |  All          |
+| Prerequisites:  | 1)how to generate generic data type for flat map       |  All          |
 | src->tokenizer->fmap          | 2)read through flink documentation      |  Team         |
-|  | 3)get input events in flatmap irrespective of source                 |  Members      | 
+|  | 3)get input events in flat map irrespective of source                 |  Members      | 
 |                 |                                                       |               |
 |                 |                                                       |               |
 | Bash script     | 1)generate events at specific interval based on need  |  Sakshi       |
@@ -102,7 +115,7 @@ Design Document | Team 6 </h4>
 |                 |                                                       |               |
 | Process Function| 1)how to build the function                           |  All          |
 |                 | 2)restrictions of the function                        |  Team         |
-|                 | 3))similarity to flatmap -> are they interchangeable? |  Members      |
+|                 | 3))similarity to flat map -> are they interchangeable? |  Members      |
 |                 |                                                       |               |
 |                 |                                                       |               |
 | Flink Pipeline  | 1)setup Flink pipeline -> jar required for step       |  Yujie Yan    |
