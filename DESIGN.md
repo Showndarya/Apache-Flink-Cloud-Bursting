@@ -36,13 +36,13 @@ Design Document | Team 6 </h4>
 
 ## 3. **Expectations:**
 
-    When a bursting workload happens, we expect our solution will successfully detect the bursting input stream and locate the bottleneck node.
-    
+    When a bursting workload happens, we expect our solution will detect the bursting input stream and locate the bottleneck node.
     Then our solution will decide whether cloud bursting is necessary and will spawn lambda functions to handle the excess load.
-    
-    We expect our solution will improve the bottleneck node and achieve better performance than backpressure in terms of latency, througput and processing time of the node.
-    
-    Therefore, our solution will provide a more efficient and scalable approach compared to backpressure mechanisms.
+    We expect our solution will reduce the burden on the bottleneck node and achieve better performance than backpressure and is more efficient and scalable.
+    Specifically, we expect our solution will successfully solve the congestion during bursting moment and compared with backpressure, it will have
+        1). smaller latency.
+        2). greater throughput.
+        3). faster processing time on bottleneck node. 
 
 ## 4. **Experimental Plan:** <br />
     > Assumptions: 
