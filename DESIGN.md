@@ -38,20 +38,24 @@ Design Document | Team 6 </h4>
 
 ## 3. **Expectations:**
 
-  - When a bursting workload happens, we expect our solution will detect the bursting input stream and locate the bottleneck node.
-  - Then our solution will decide whether cloud bursting is necessary and will spawn lambda functions to handle the excess load.
-  - We expect our solution will reduce the burden on the bottleneck node and achieve better performance than backpressure and is more efficient and scalable.
-  - Specifically, we expect our solution will successfully solve the congestion during bursting moment and compared with backpressure, it will have
-    1. smaller latency.
-    2. greater throughput.
-    3. faster processing time on bottleneck node. 
+  - When a sudden increase occurs in the workload, our model will detect the source of the bottleneck by identifying the node that is facing the influx of streams. 
+  - We plan on using metrics like numRecordsInPerSecond and numRecordsOutPerSecond through Flink's metrics API by using the getMetric() method of the RuntimeContext object.
+  - The program will then decide whether cloud bursting is necessary and will spawn lambda functions to handle the excess load.
+  - The solution is expected to reduce the bottleneck and achieve better performance  (no backpressure).
+  - The solution is expected to be generalised so that it can be scaled to bigger setups with large amounts of data streams and use generalised operators (stateful and stateless both)
+  - We expect our solution will successfully solve the backpressure faced by the operator. This would be indicated when the operator is processing records at the same rate at which they are arriving.
+
+  In general, the solution is supposed to have:
+    1. smaller latency
+    2. greater throughput
+    3. faster processing time on bottleneck node 
 
 ## 4. **Experimental Plan:** <br />
   > ### Assumptions: 
   - The system is fault tolerant
   - The system is very secure and doesn't need any additional security features <br />
   - Based on the progress of the project, we might add or remove some metrics/experiments
-    We do plan to incorporate all of the above in our future work.
+    We plan to incorporate all of the above in our future work.
   > ### Step 1
    
    We will start with a subsystem of the problem,
