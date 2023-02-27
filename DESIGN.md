@@ -8,57 +8,52 @@ Design Document | Team 6 </h4>
   - **Target audience**:  people who will benefit from solving this problem include organizations that use Apache Flink for real-time data processing, particularly in cases where the workload can fluctuate rapidly. This solution can help to improve the reliability and performance of these systems, and make them more scalable and cost-effective. Additionally, this solution can benefit developers and data scientists who use Apache Flink, by providing them with a more robust and flexible tool for processing large amounts of data in real-time.
 ## 2. **Proposed Solution:**
 > ### Components:
-> + Source
-  >   + Nexmark
-  >   + Yahoo Streaming Benchmark
-> + Operator
-  >   + Flatmap in flink(Java)
-  >   + Flatmap in flink(Python)
-> + Cloud
-  >   + AWS Lambda Function
-  >   + Azure Functions
-> + Sink
-  >   + Any operator or sink
->
+  + Source
+    + Nexmark
+    + Yahoo Streaming Benchmark
+  + Operator
+    + Flatmap in flink(Java)
+    + Flatmap in flink(Python)
+  + Cloud
+    + AWS Lambda Function
+    + Azure Functions
+  + Sink
+    + Any operator or sink
+
 > ### Explain:
-> The data is generated from one of the source, and is processed in the operator. Finally,
-> the result is emitted to the sink. Flink metrics can be used to detect the traffic of the input event stream. 
-> Based on what we know, we might use metrics types including Gauge or Meters to measure information such as JVM heap usage, event input rate to detect the traffic in the operator. And based on these 
-> metrics, we might do many experiment to determine the suitable offloading portion which gives us the balance between
-> resources(money used for AWS lambda function) and processing speed(throughput, latency etc.).     
-> 
-> We might use the AWS SDK for Java to dynamically invoke the AWS Lambda function. In our case, we are tokenizing a string.
-> Thus, we send the string we want to offload to the AWS and call the invoke method. After getting the result, we do the deserialization of the 
-> InvokeResult object in the operator and send the result to the downstream.
->
+  - The data is generated from one of the source, and is processed in the operator.   
+  - Finally, the result is emitted to the sink. Flink metrics can be used to detect the traffic of the input event stream. 
+  - Based on what we know, we might use metrics types including **Gauge or Meters** to measure information such as JVM heap usage, event input rate to detect the traffic in the operator. 
+  - Based on these metrics, we might do many experiment to determine the suitable offloading portion which gives us the balance between resources (used for AWS lambda function) and processing speed (throughput, latency etc.).     
+  - For invoking the cloud function, we will use the AWS SDK for Java to dynamically invoke the AWS Lambda function. In case of the first milestone, we will send tokenize the string i.e. perform the same function as the flatmap operator.
+  - Thus, we will send the string we want to offload to the AWS and call the invoke method. After getting the result, we do the deserialization of the  InvokeResult object in the operator and send the result to the downstream.
+
 > ### Why is this suitable:
-> 1. We choose flatmap as a start because it is stateless. We don't need to consider
+  1. We choose flatmap as a start because it is stateless. We don't need to consider
   aggregation operation and order of the event.
-> 2. We choose to send the event from operator to cloud and send back data from cloud to operator.
+  2. We choose to send the event from operator to cloud and send back data from cloud to operator.
   Because it is easier.
-> 3. We choose to offload event to cloud, thus we can intuitively observe the difference of workload between
+  3. We choose to offload event to cloud, thus we can intuitively observe the difference of workload between
   using only operator and using cloudburst technique.
 
 ## 3. **Expectations:**
 
-  - When a bursting workload happens, we expect our solution will successfully detect the bursting input stream and locate the bottleneck node.
-    
-  - Then our solution will decide whether cloud bursting is necessary and will spawn lambda functions to handle the excess load.
-    
-  - We expect our solution will improve the bottleneck node and achieve better performance than backpressure in terms of latency, througput and processing time of the node.
-    
-  - Therefore, our solution will provide a more efficient and scalable approach compared to backpressure mechanisms.
+- When a bursting workload happens, we expect our solution will successfully detect the bursting input stream and locate the bottleneck node.
+- Then our solution will decide whether cloud bursting is necessary and will spawn lambda functions to handle the excess load.
+- We expect our solution will improve the bottleneck node and achieve better performance than backpressure in terms of latency, througput and processing time of the node.
+ - Therefore, our solution will provide a more efficient and scalable approach compared to backpressure mechanisms.
 
 ## 4. **Experimental Plan:** <br />
-    > Assumptions: 
-    - The system is fault tolerant. 
-    - The system is very secure and doesn't need any additional security features <br />
-      We do plan to incorporate all of the above in our future work
+  > ### Assumptions: 
+  - The system is fault tolerant. 
+  - The system is very secure and doesn't need any additional security features <br />
+    We do plan to incorporate all of the above in our future work
    
-   > Step 1
+   > ### Step 1
    
    We will start with a subsystem of the problem,
    ![basic design](basic%20design.png)
+   <br />
    For the above figure, we have the following steps - 
    - We consider a flatmap that just tokenizes text as our operator
    - Find out the metrics affecting the streaming pipeline
@@ -67,7 +62,8 @@ Design Document | Team 6 </h4>
    - Detect when queue fills up for tokenizer(flat map) and direct half of the load to our lambda function
    - Merge the results produced by the operator and the lambda function
    - Measure the latency of offloading the work to lambda function
-   > Step 2 
+   
+   > ### Step 2 
    
    After implementing the first prototype in step 1, we plan to evaluate our streaming pipeline by
       - Connecting the lambda function to the source or to the sink instead of the operator
@@ -81,7 +77,7 @@ Design Document | Team 6 </h4>
   - Architecture tuned enough to make the best decisions on when to offload the data packets to the cloud function without incurring more processing delay than the original architecture.
   - Devise a method to handle data merge and data propagation with respect to both stateful and stateless operators without loss of order or data.
   - Cloud function instances are created/destroyed based on requirement, reducing cost and resource utilization
-  - > Intermidiate milestones:
+  - > ### Intermidiate milestones:
     - Setting up the basic Flink pipeline with 1 stateles operator and connecting the operator to the lambda function to experiment with the performance and scenarios.
     - Extending the Flink pipeline setup to test the setup against 1 stateful operator.
     - Experimenting with the setup of cloud bursting with a combination of stateful and stateless operators (operator chaining). Identifying the operator causing the bottleneck before attaching the lambda function would be an additional step
@@ -132,4 +128,9 @@ Design Document | Team 6 </h4>
 |                 |                                                       |  Members      |
 |                 |                                                       |               |
 
-The task distribution was made keeping in mind the strengths and weaknesses of each team member. All of us collectively have some Java coding experience whereas Flink and Stream processing is a new area that we are delving into. On the basis of this, we decided to perform some of the tasks as a group. The tasks assigned individually are the ones we believe can be performed parallely where multiple group members perform separate tasks which can then be integrated. Having said this, we have considered that any of us might face difficulty in the area we have assigned ourselves and will redistribute or discuss accordingly whenever required. 
+> ###  Notes:
+- The task distribution was made keeping in mind the strengths and weaknesses of each team member. 
+- All of us collectively have some Java coding experience whereas Flink and Stream processing is a new area that we are delving into. 
+- On the basis of this, we decided to perform some of the tasks as a group. 
+- The tasks assigned individually are the ones we believe can be performed parallely where multiple group members perform separate tasks which can then be integrated. 
+- Having said this, we have considered that any of us might face difficulty in the area we have assigned ourselves and will redistribute or discuss accordingly whenever required. 
