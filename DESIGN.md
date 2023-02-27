@@ -23,9 +23,13 @@ Design Document | Team 6 </h4>
 > ### Explain:
 > The data is generated from one of the source, and is processed in the operator. Finally,
 > the result is emitted to the sink. Flink metrics can be used to detect the traffic of the input event stream. 
-> We might use metrics like JVM heap usage, event input rate to detect the traffic in the operator. And based on these 
-> metrics, we might determine the suitable offloading portion based on our experiment. After the computation is done in the lambda function,
-> it sends the result back to the operator. Finally, the operator sends the data to the sink or another operator.
+> Based on what we know, we might use metrics types including Gauge or Meters to measure information such as JVM heap usage, event input rate to detect the traffic in the operator. And based on these 
+> metrics, we might do many experiment to determine the suitable offloading portion which gives us the balance between
+> resources(money used for AWS lambda function) and processing speed(throughput, latency etc.).     
+> 
+> We might use the AWS SDK for Java to dynamically invoke the AWS Lambda function. In our case, we are tokenizing a string.
+> Thus, we send the string we want to offload to the AWS and call the invoke method. After getting the result, we do the deserialization of the 
+> InvokeResult object in the operator and send the result to the downstream.
 >
 > ### Why is this suitable:
 > 1. We choose flatmap as a start because it is stateless. We don't need to consider
