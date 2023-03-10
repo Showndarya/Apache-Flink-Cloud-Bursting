@@ -91,7 +91,7 @@
               </filters>
               <transformers>
                 <transformer>
-                  <mainClass>org.apache.flink.quickstart.WikiEdits</mainClass>
+                  <mainClass>org.apache.flink.quickstart.FlinkPipeline</mainClass>
                 </transformer>
               </transformers>
             </configuration>
