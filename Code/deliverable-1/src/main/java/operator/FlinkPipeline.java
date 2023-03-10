@@ -12,6 +12,8 @@ public class FlinkPipeline {
         // generate a stream of random strings
         DataStream<String> randomStrings = env.addSource(new RandomStringGenerator(1000,500,100));
 
+        DataStream<String> tokens = randomStrings.process(new TokenizerProcessFunction());
+
         env.execute("Flink Pipeline Tokenization");
 
     }
