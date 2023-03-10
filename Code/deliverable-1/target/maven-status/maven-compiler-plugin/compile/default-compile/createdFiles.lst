@@ -1,7 +1,0 @@
-org/apache/flink/quickstart/FlinkPipeline.class
-org/apache/flink/quickstart/LambdaInvokerUsingURLPayload.class
-LambdaInvoker.class
-java/org/apache/flink/quickstart/RandomStringGenerator.class
-java/org/apache/flink/quickstart/TokenizerProcessFunction.class
-LambdaInvokerUsingARN.class
-LambdaInvokerUsingURL.class
