@@ -1,4 +1,7 @@
-org/apache/flink/quickstart/WikiEdits$1.class
-org/apache/flink/quickstart/WikiEdits.class
-org/apache/flink/quickstart/WikiEdits$MyFilterFunction.class
-org/apache/flink/quickstart/WikiEdits$MyMapFunction.class
+org/apache/flink/quickstart/FlinkPipeline.class
+org/apache/flink/quickstart/LambdaInvokerUsingURLPayload.class
+LambdaInvoker.class
+java/org/apache/flink/quickstart/RandomStringGenerator.class
+java/org/apache/flink/quickstart/TokenizerProcessFunction.class
+LambdaInvokerUsingARN.class
+LambdaInvokerUsingURL.class
