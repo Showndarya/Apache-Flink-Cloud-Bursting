@@ -27,12 +27,16 @@ public class RandomStringGenerator implements SourceFunction<String> {
             Thread.sleep(delayMillis);
 
             int stringLength = random.nextInt(maxStringLength) + 1;
-            char[] chars = new char[stringLength];
-            for (int i = 0; i < stringLength; i++) {
-                chars[i] = (char) (random.nextInt(26) + 'a');
+            StringBuilder stringbuilder = new StringBuilder();
+            for (int j = 0; j < stringLength; j++) {
+                char[] chars = new char[stringLength];
+                for (int i = 0; i < stringLength; i++) {
+                    chars[i] = (char) (random.nextInt(26) + 'a');
+                }
+                String randomString = new String(chars);
+                stringbuilder.append(" ").append(randomString);
             }
-            String randomString = new String(chars);
-            ctx.collect(randomString);
+            ctx.collect(stringbuilder.toString());
         }
     }
 
