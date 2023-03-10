@@ -15,6 +15,7 @@ public class TokenizerProcessFunction extends ProcessFunction<String, String> {
     public void processElement(String value, Context ctx, Collector<String> out) throws Exception {
         if(!isBusy) {
             isBusy = true;
+            value = value.replaceAll("\\W"," ");
             String[] tokens = value.split("\\s+"); // split the string into tokens
             for (String token : tokens) {
                 out.collect(token); // emit each token to downstream operators
