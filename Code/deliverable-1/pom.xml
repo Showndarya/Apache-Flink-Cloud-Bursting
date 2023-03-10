@@ -179,7 +179,7 @@ under the License.
 							</filters>
 							<transformers>
 								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<mainClass>org.apache.flink.quickstart.WikiEdits</mainClass>
+									<mainClass>operator.FlinkPipeline</mainClass>
 								</transformer>
 							</transformers>
 						</configuration>

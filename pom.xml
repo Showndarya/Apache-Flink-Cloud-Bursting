@@ -156,7 +156,7 @@
                             </filters>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>java.quickstart.FlinkPipeline</mainClass>
+                                    <mainClass>operator.FlinkPipeline</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>
