@@ -10,7 +10,7 @@ public class FlinkPipeline {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
         // generate a stream of random strings
-        DataStream<String> randomStrings = env.addSource(new RandomStringGenerator(1000,500,100));
+        DataStream<String> randomStrings = env.addSource(new RandomStringGenerator(1,0,1000));
 
         DataStream<String> tokens = randomStrings.process(new TokenizerProcessFunction());
 
