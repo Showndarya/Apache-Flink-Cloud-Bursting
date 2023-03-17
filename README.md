@@ -81,31 +81,31 @@ The following environment variable should be set on every node for the Flink and
 
 ### Build Nexmark
 
-Before start to run the benchmark, you should build the Nexmark benchmark first to have a benchmark package. Please make sure you have installed `maven` in your build machine. And run the `./build.sh` command under `nexmark-flink` directoy. Then you will get the `nexmark-flink.tgz` archive under the directory.
+Before start to run the benchmark, you should build the Nexmark benchmark first to have a benchmark package. Please make sure you have installed `maven` in your build machine. And run the `./build.sh` command under `nexmark-nexmark` directoy. Then you will get the `nexmark-nexmark.tgz` archive under the directory.
 
 ### Setup Cluster
 
-- Step 1: Download the latest Flink package from the [download page](https://flink.apache.org/downloads.html). Say `flink-<version>-bin-scala_2.11.tgz`.
-- Step2: Copy the archives (`flink-<version>-bin-scala_2.11.tgz`, `nexmark-flink.tgz`) to your master node and extract it.
+- Step 1: Download the latest Flink package from the [download page](https://flink.apache.org/downloads.html). Say `nexmark-<version>-bin-scala_2.11.tgz`.
+- Step2: Copy the archives (`nexmark-<version>-bin-scala_2.11.tgz`, `nexmark-nexmark.tgz`) to your master node and extract it.
   ```
-  tar xzf flink-<version>-bin-scala_2.11.tgz; tar xzf nexmark-flink.tgz
-  mv flink-<version> flink; mv nexmark-flink nexmark
+  tar xzf nexmark-<version>-bin-scala_2.11.tgz; tar xzf nexmark-nexmark.tgz
+  mv nexmark-<version> nexmark; mv nexmark-nexmark nexmark
   ```
-- Step3: Copy the jars under `nexmark/lib` to `flink/lib` which contains the Nexmark source generator.
+- Step3: Copy the jars under `nexmark/lib` to `nexmark/lib` which contains the Nexmark source generator.
 - Step4: Configure Flink.
-  - Edit `flink/conf/workers` and enters the IP address of each worker node. Recommand to set 8 entries.
-  - Replace `flink/conf/sql-client-defaults.yaml` by `nexmark/conf/sql-client-defaults.yaml`
-  - Replace `flink/conf/flink-conf.yaml` by `nexmark/conf/flink-conf.yaml`. Remember to update the following configurations:
+  - Edit `nexmark/conf/workers` and enters the IP address of each worker node. Recommand to set 8 entries.
+  - Replace `nexmark/conf/sql-client-defaults.yaml` by `nexmark/conf/sql-client-defaults.yaml`
+  - Replace `nexmark/conf/nexmark-conf.yaml` by `nexmark/conf/nexmark-conf.yaml`. Remember to update the following configurations:
     - Set `jobmanager.rpc.address` to you master IP address
     - Set `state.checkpoints.dir` to your local file path (recommend to use SSD), e.g. `file:///home/username/checkpoint`.
     - Set `state.backend.rocksdb.localdir` to your local file path (recommend to use SSD), e.g. `/home/username/rocksdb`.
 - Step5: Configure Nexmark benchmark.
   - Set `nexmark.metric.reporter.host` to your master IP address.
-- Step6: Copy `flink` and `nexmark` to your worker nodes using `scp`.
-- Step7: Start Flink Cluster by running `flink/bin/start-cluster.sh` on the master node.
+- Step6: Copy `nexmark` and `nexmark` to your worker nodes using `scp`.
+- Step7: Start Flink Cluster by running `nexmark/bin/start-cluster.sh` on the master node.
 - Step8: Setup the benchmark cluster by running `nexmark/bin/setup_cluster.sh` on the master node.
 - (If you want to use kafka source instead of datagen source) Step9: Prepare Kafka
-  - (Please make sure Flink Kafka Jar is ready in flink/lib/ [download page](https://ci.apache.org/projects/flink/flink-docs-release-1.13/docs/connectors/table/kafka/#dependencies))
+  - (Please make sure Flink Kafka Jar is ready in nexmark/lib/ [download page](https://ci.apache.org/projects/flink/flink-docs-release-1.13/docs/connectors/table/kafka/#dependencies))
   - Start your kafka cluster. (recommend to use SSD)
   - Create kafka topic: `bin/kafka-topics.sh --create --topic nexmark --bootstrap-server localhost:9092 --partitions 8`.
   - Edit `nexmark/conf/nexmark.yaml`, set `kafka.bootstrap.servers`.
@@ -131,7 +131,7 @@ Minimum requirements:
 
 ### Flink Configuration
 
-Use the default configuration file `flink-conf.yaml` and `sql-client-defaults.yaml` defined in `nexmark-flink/src/main/resources/conf/`.
+Use the default configuration file `nexmark-conf.yaml` and `sql-client-defaults.yaml` defined in `nexmark-nexmark/src/main/resources/conf/`.
 
 Some notable configurations including:
 

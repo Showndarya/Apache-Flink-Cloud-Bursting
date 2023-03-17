@@ -16,5 +16,5 @@ Paticipants - All group members
 - The tokenized output has to be written out to file
 - The file is required to assess accuracy of result
 - Accuracy of result will give metric of efficiency of proposed solution
-- We require metrics before process function in flink pipeline to determine whether the stream data will be sent to lambda or whether it will be sent to process function 
+- We require metrics before process function in nexmark pipeline to determine whether the stream data will be sent to lambda or whether it will be sent to process function 
 - We will try to implement the model as illustrated in the above image

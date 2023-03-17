@@ -8,8 +8,8 @@ Paticipants - All group members
 - Yujie - working on pipeline, working on writing tokenized string to file for evaluation
 - Sanath - working on metrics for logical evaluation of when process function will be used and when lambda will be invoked
 - Ye - Integrate sources for stream generation
-- Sakshi - build flink pipeline using random strings for current tests
-- Anwesha - work on integration of flink with cloud lambda aws for invocation of lambda based on ARN/URL and with and without access keys
+- Sakshi - build nexmark pipeline using random strings for current tests
+- Anwesha - work on integration of nexmark with cloud lambda aws for invocation of lambda based on ARN/URL and with and without access keys
 - Showndarya - work on setting up and configuring aws Lambda, make the function available to external applications, setup authentication methods
 
 >Covered and discussed the Flink prerequisites and how to go about implementing each portion
