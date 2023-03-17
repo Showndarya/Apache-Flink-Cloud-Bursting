@@ -13,12 +13,14 @@ import nexmark.model.Event;
 import nexmark.source.NexmarkSourceFunction;
 import nexmark.source.EventDeserializer;
 
+import java.io.File;
+
 public class FlinkPipeline {
 
     public static void main(String[] args) throws Exception {
         // create a Flink execution environment
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-
+        env.disableOperatorChaining();
         NexmarkConfiguration nexmarkConfiguration = new NexmarkConfiguration();
         nexmarkConfiguration.bidProportion = 46;
         GeneratorConfig generatorConfig = new GeneratorConfig(
@@ -32,10 +34,19 @@ public class FlinkPipeline {
 
         DataStream<String> tokens = randomStrings.process(new TokenizerProcessFunction());
 
+        /**
+         * get home directory
+         */
+        String userHomeDir = System.getProperty("user.home");
+        /**
+         * get system separator
+         */
+        String dir=userHomeDir+"/FlinkFile";
+        dir=dir.replaceAll("[\\/\\\\]", "\\"+File.separator);
+        System.out.println(dir);
+
         final StreamingFileSink<String> sink = StreamingFileSink
-                .forRowFormat(new Path("FileSink"), new SimpleStringEncoder<String>("UTF-8"))
-
-
+                .forRowFormat(new Path(dir), new SimpleStringEncoder<String>("UTF-8"))
                 .build();
         tokens.addSink(sink);
 
