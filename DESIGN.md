@@ -12,8 +12,8 @@ Design Document | Team 6 </h4>
   >   + Nexmark
   >   + Yahoo Streaming Benchmark
 > + Operator
-  >   + Flatmap in flink(Java)
-  >   + Flatmap in flink(Python)
+  >   + Flatmap in nexmark(Java)
+  >   + Flatmap in nexmark(Python)
 > + Cloud
   >   + AWS Lambda Function
   >   + Azure Functions
@@ -72,7 +72,7 @@ Design Document | Team 6 </h4>
 
 
 ## 5. **Success Indicators:**
-  - Data flow pipline in flink works as it was intended without data/packet loss.
+  - Data flow pipline in nexmark works as it was intended without data/packet loss.
   - Cloud bursting technique should improve the performance of the entire dataflow with respect to latency and act as an alternative to back pressure.
   - Architecture tuned enough to make the best decisions on when to offload the data packets to the cloud function without incurring more processing delay than the original architecture.
   - Devise a method to handle data merge and data propagation with respect to both stateful and stateless operators without loss of order or data.
@@ -90,7 +90,7 @@ Design Document | Team 6 </h4>
 | **Task**            | **Subtask**                                               |  **Assigned To**  |
 | :--------------- |:----------------------------------------------------- |:-------------:|
 | Prerequisites:  | 1)how to generate generic data type for flatmap       |  All          |
-| src->tokenizer->fmap          | 2)read through flink documentation      |  Team         |
+| src->tokenizer->fmap          | 2)read through nexmark documentation      |  Team         |
 |  | 3)get input events in flatmap irrespective of source                 |  Members      | 
 |                 |                                                       |               |
 |                 |                                                       |               |
@@ -118,8 +118,8 @@ Design Document | Team 6 </h4>
 |                 | 4)expose lambda to outside environment                |               |
 |                 |                                                       |               |
 |                 |                                                       |               |
-| Final Integration| 1)stop cloud and verify data goes to flink           |  All          |
-| Create->Test->Overload->Test| 2)stop flink and verify data goes to cloud|  Team         |
+| Final Integration| 1)stop cloud and verify data goes to nexmark           |  All          |
+| Create->Test->Overload->Test| 2)stop nexmark and verify data goes to cloud|  Team         |
 |                 | 3)ensure no loss of data                              |  Members      |
 |                 |                                                       |               |
 |                 |                                                       |               |
