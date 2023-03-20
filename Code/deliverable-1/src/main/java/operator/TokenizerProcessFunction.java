@@ -23,11 +23,11 @@ public class TokenizerProcessFunction extends ProcessFunction<String, String> {
             Thread.sleep(1000);
             numOfElemProcessedByProcessFn+=1;
             isBusy = false;
-            System.out.println("Process Function Operator tokens" + Arrays.toString(tokens));
+            //System.out.println("Process Function Operator tokens" + Arrays.toString(tokens));
         }
         else{
             String lambda_tokens = LambdaInvokerUsingURLPayload.invoke_lambda(value);
-            System.out.println("Lambda Function Operator tokens" + lambda_tokens);
+            //System.out.println("Lambda Function Operator tokens" + lambda_tokens);
             out.collect(lambda_tokens);
             numOfElemProcessedByLambda+=1;
         }
