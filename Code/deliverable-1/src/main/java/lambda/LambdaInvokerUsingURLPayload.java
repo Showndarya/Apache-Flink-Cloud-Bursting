@@ -10,22 +10,21 @@ import java.io.*;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import operator.FlinkPipeline;
 
 public class LambdaInvokerUsingURLPayload {
 
     public static String invoke_lambda(String payloadString) throws Exception {
-//        String json1Path = LambdaInvokerUsingURLPayload.class.getClassLoader().getResource("configs/" + "JavaConfig.json").getPath();
-        String path = "Code/deliverable1/src/main/java/configs/JavaConfig.json";
-        String base = "Code/deliverable1/";
-        String relative = new File(base).toURI().relativize(new File(path).toURI()).getPath();
+        InputStream inputStream = LambdaInvokerUsingURLPayload.class.getResourceAsStream("configs/JavaConfig.json");
+        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 
-        String json = "";
-        try (BufferedReader br = new BufferedReader(new FileReader(relative))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                json += line;
-            }
+        String json="";
+        String line;
+        while ((line = reader.readLine()) != null) {
+            json += line;
         }
+
+
         Gson gson = new Gson();
         JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
         String value = jsonObject.get("URL").getAsString();

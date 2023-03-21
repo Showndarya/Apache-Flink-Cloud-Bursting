@@ -1,4 +1,4 @@
-package configs;
+package lambda.configs;
 
 import java.io.FileReader;
 import org.json.simple.JSONObject;

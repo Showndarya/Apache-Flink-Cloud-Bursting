@@ -6,6 +6,14 @@
   <name>Flink Quickstart Job</name>
   <version>0.1</version>
   <build>
+    <resources>
+      <resource>
+        <directory>${basedir}/src/main/java</directory>
+        <includes>
+          <include>**/*.json</include>
+        </includes>
+      </resource>
+    </resources>
     <pluginManagement>
       <plugins>
         <plugin>
