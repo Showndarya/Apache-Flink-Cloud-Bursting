@@ -1,17 +1,31 @@
 package lambda;
 
+import configs.JsonReader;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 
 public class LambdaInvokerUsingURLPayload {
 
+
     public static String invoke_lambda(String payloadString) throws Exception {
-        //String payloadString = "nothing now";
-        String functionUrl = "https://bm4bhvxuug3pxxl6q2plsdg2540ssaih.lambda-url.us-east-1.on.aws/";
+//        String json1Path = LambdaInvokerUsingURLPayload.class.getClassLoader().getResource("configs/" + "JavaConfig.json").getPath();
+        String configFilePath = "configs/JavaConfig.json";
+
+        // Get the absolute path to the config file
+        Path configPath = Paths.get("Code","deliverable-1", "src", "main", "java", configFilePath);
+        String absoluteConfigPath = configPath.toFile().getAbsolutePath();
+
+        JsonReader reader = new JsonReader(absoluteConfigPath);
+        String value = reader.read("URL");
+        String functionUrl = value;
         String payload = "{\n" +
                 "  \"body\": " + payloadString + "\n" +
                 "}";
