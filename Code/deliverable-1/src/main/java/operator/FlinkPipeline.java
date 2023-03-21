@@ -1,9 +1,10 @@
 package operator;
 
-import org.apache.flink.api.common.serialization.SimpleStringEncoder;
-import org.apache.flink.core.fs.Path;
+
+import org.apache.flink.connector.file.sink.FileSink;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSink;
 import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
 
@@ -21,6 +22,8 @@ public class FlinkPipeline {
         // create a Flink execution environment
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.disableOperatorChaining();
+
+//        env.enableCheckpointing(100);
         NexmarkConfiguration nexmarkConfiguration = new NexmarkConfiguration();
         nexmarkConfiguration.bidProportion = 46;
         GeneratorConfig generatorConfig = new GeneratorConfig(
@@ -34,21 +37,10 @@ public class FlinkPipeline {
 
         DataStream<String> tokens = randomStrings.process(new TokenizerProcessFunction());
 
-        /**
-         * get home directory
-         */
-        String userHomeDir = System.getProperty("user.home");
-        /**
-         * get system separator
-         */
-        String dir=userHomeDir+"/FlinkFile";
-        dir=dir.replaceAll("[\\/\\\\]", "\\"+File.separator);
-        System.out.println(dir);
+        FileSink sink=CustomedFileSink.getSink();
+        tokens.sinkTo(sink);
 
-        final StreamingFileSink<String> sink = StreamingFileSink
-                .forRowFormat(new Path(dir), new SimpleStringEncoder<String>("UTF-8"))
-                .build();
-        tokens.addSink(sink);
+
 
 
         env.execute("Flink Pipeline Tokenization");
