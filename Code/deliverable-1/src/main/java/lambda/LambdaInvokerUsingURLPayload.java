@@ -1,30 +1,34 @@
 package lambda;
 
-import configs.JsonReader;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.*;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 public class LambdaInvokerUsingURLPayload {
 
-
     public static String invoke_lambda(String payloadString) throws Exception {
 //        String json1Path = LambdaInvokerUsingURLPayload.class.getClassLoader().getResource("configs/" + "JavaConfig.json").getPath();
-        String configFilePath = "configs/JavaConfig.json";
+        String path = "Code/deliverable1/src/main/java/configs/JavaConfig.json";
+        String base = "Code/deliverable1/";
+        String relative = new File(base).toURI().relativize(new File(path).toURI()).getPath();
 
-        // Get the absolute path to the config file
-        Path configPath = Paths.get("Code","deliverable-1", "src", "main", "java", configFilePath);
-        String absoluteConfigPath = configPath.toFile().getAbsolutePath();
-
-        JsonReader reader = new JsonReader(absoluteConfigPath);
-        String value = reader.read("URL");
+        String json = "";
+        try (BufferedReader br = new BufferedReader(new FileReader(relative))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                json += line;
+            }
+        }
+        Gson gson = new Gson();
+        JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
+        String value = jsonObject.get("URL").getAsString();
         String functionUrl = value;
         String payload = "{\n" +
                 "  \"body\": " + payloadString + "\n" +
