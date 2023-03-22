@@ -5,12 +5,14 @@ import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.io.*;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import operator.FlinkPipeline;
+import org.apache.commons.lang3.StringEscapeUtils;
+
 
 public class LambdaInvokerUsingURLPayload {
 
@@ -23,15 +25,13 @@ public class LambdaInvokerUsingURLPayload {
         while ((line = reader.readLine()) != null) {
             json += line;
         }
-
-
         Gson gson = new Gson();
         JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
         String value = jsonObject.get("URL").getAsString();
         String functionUrl = value;
-        String payload = "{\n" +
-                "  \"body\": " + payloadString + "\n" +
-                "}";
+        //String payload = "{\"body\": \"test test\"}\"}";
+        String payload = "{\"body\": \"" + payloadString + "\"}";
+
         URL url = new URL(functionUrl);
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
 //        con.setRequestMethod("GET");
@@ -44,14 +44,23 @@ public class LambdaInvokerUsingURLPayload {
         out.close();
         int responseCode = con.getResponseCode();
 //        System.out.println("response code", String.valueOf(responseCode));
-        BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+        InputStream inputStream2 = con.getInputStream();
+        BufferedReader in = new BufferedReader(new InputStreamReader(inputStream2, StandardCharsets.UTF_8));
+
         String inputLine;
         StringBuilder response = new StringBuilder();
         while ((inputLine = in.readLine()) != null) {
             response.append(inputLine);
         }
         in.close();
-        System.out.println("Response: " + response);
-        return response.toString();
+
+        String jsonResponse = response.toString();
+        String decodedJson = StringEscapeUtils.unescapeJava(jsonResponse);
+
+//        String[] parts = decodedJson.split(",");
+//        String[] newArray = new String[parts.length - 2];
+//        System.arraycopy(parts, 2, newArray, 0, newArray.length);
+//        System.out.println(Arrays.toString(newArray));
+        return decodedJson;
     }
 }
