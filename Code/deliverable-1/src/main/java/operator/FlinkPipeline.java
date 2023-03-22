@@ -6,7 +6,9 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSink;
+import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
+import org.apache.flink.api.java.tuple.Tuple2;
 
 import nexmark.NexmarkConfiguration;
 import nexmark.generator.GeneratorConfig;
@@ -35,7 +37,14 @@ public class FlinkPipeline {
                 (EventDeserializer<String>) Event::toString,
                 BasicTypeInfo.STRING_TYPE_INFO));
 
-        DataStream<String> tokens = randomStrings.process(new TokenizerProcessFunction());
+        DataStream<Tuple2<String, Boolean>> controlledStrings = randomStrings.process(new ControllerProcessFunction());
+
+// Create a KeyedStream with a dummy key extractor function
+        KeyedStream<Tuple2<String, Boolean>, String> keyedControlledStrings = controlledStrings.keyBy(t -> "");
+
+        DataStream<String> tokens = keyedControlledStrings.process(new TokenizerProcessFunction());
+
+
 
         FileSink sink=CustomedFileSink.getSink();
         tokens.sinkTo(sink);
