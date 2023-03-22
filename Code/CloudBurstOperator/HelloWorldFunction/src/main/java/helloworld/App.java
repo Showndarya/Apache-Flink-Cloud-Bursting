@@ -27,7 +27,8 @@ public class App implements RequestHandler<APIGatewayProxyRequestEvent, APIGatew
         APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent()
                 .withHeaders(headers);
         Gson gson = new Gson();
-        String[] tokens = input.getBody().split("\\s+");
+        String value = input.getBody().replaceAll("\\W"," ");
+        String[] tokens = value.split("\\s+");
         String output = String.format("{ \"data\": \"%s\" }", gson.toJson(tokens));
 
         return response
