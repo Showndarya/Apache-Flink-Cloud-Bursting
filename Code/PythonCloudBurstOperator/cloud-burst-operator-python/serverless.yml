@@ -1,4 +1,4 @@
-service: python-cloud-burst-operator
+service: cloud-burst-operator-python
 frameworkVersion: '3'
 
 provider:
