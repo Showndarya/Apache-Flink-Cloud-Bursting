@@ -4,8 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import com.google.gson.Gson;
 
@@ -27,10 +26,18 @@ public class App implements RequestHandler<APIGatewayProxyRequestEvent, APIGatew
         APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent()
                 .withHeaders(headers);
         Gson gson = new Gson();
-        String value = input.getBody().replaceAll("\\W"," ");
-        String[] tokens = value.split("\\s+");
-        String output = String.format("{ \"data\": \"%s\" }", gson.toJson(tokens));
 
+        List<String> bodyList = Arrays.asList(input.getBody().split(","));
+        List<String[]> tokensBatch = new ArrayList<>();
+
+        for(String str : bodyList) {
+            System.out.println(str);
+            String value = input.getBody().replaceAll("\\W"," ");
+            String[] tokens = value.split("\\s+");
+            tokensBatch.add(tokens);
+        }
+
+        String output = String.format("{ \"data\": \"%s\" }", gson.toJson(tokensBatch));
         return response
                 .withStatusCode(200)
                 .withBody(output);
