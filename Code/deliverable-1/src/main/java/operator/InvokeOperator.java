@@ -1,5 +1,8 @@
 package operator;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import lambda.LambdaInvokerUsingURLPayload;
 import org.apache.flink.api.common.state.ListState;
 import org.apache.flink.api.common.state.ListStateDescriptor;
 import org.apache.flink.api.common.state.ValueState;
@@ -13,7 +16,10 @@ import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.streaming.api.operators.util.SimpleVersionedListState;
 import org.apache.flink.util.Collector;
+import org.json.simple.JSONObject;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class InvokeOperator extends ProcessFunction<String,String> {
@@ -66,15 +72,33 @@ public class InvokeOperator extends ProcessFunction<String,String> {
         }
         else{
             List<String> list = state.value();
-
+            String payload = getPayload(list);
+            String jsonResult = LambdaInvokerUsingURLPayload.invoke_lambda(payload);
+            List<String> strings = getResultFromJson(jsonResult);
+            for(String i:strings){
+                out.collect(i);
+            }
         }
 
     }
 
-    private String getPayload(List<String> list){
-        return "return the payload here";
+    private static String getPayload(List<String> list){
+        Gson gson = new Gson();
+        String jsonString = gson.toJson(list);
+        return jsonString;
     }
 
+    private static List<String> getResultFromJson(String jsonString){
+        Gson gson = new Gson();
+        List<String> result = gson.fromJson(jsonString, new TypeToken<List<String>>() {
+        }.getType());
+        return result;
+    }
+
+    public static void main(String[] args) {
+        List<String> list = getResultFromJson("[\"aaa\",\"bbb\",\"ccc\"]");
+        System.out.println(list.get(1));
+    }
 
 
 }
