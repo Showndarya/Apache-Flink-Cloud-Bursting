@@ -55,12 +55,12 @@ public class LambdaInvokerUsingURLPayload {
         in.close();
 
         String jsonResponse = response.toString();
-        String decodedJson = StringEscapeUtils.unescapeJava(jsonResponse);
+//        String decodedJson = StringEscapeUtils.unescapeJava(jsonResponse);
 
 //        String[] parts = decodedJson.split(",");
 //        String[] newArray = new String[parts.length - 2];
 //        System.arraycopy(parts, 2, newArray, 0, newArray.length);
 //        System.out.println(Arrays.toString(newArray));
-        return decodedJson;
+        return jsonResponse;
     }
 }
