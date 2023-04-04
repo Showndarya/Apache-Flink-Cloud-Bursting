@@ -3,16 +3,27 @@ package operator;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import lambda.LambdaInvokerUsingURLPayload;
+import nexmark.NexmarkConfiguration;
+import nexmark.generator.GeneratorConfig;
+import nexmark.model.Event;
+import nexmark.source.EventDeserializer;
+import nexmark.source.NexmarkSourceFunction;
 import org.apache.flink.api.common.state.ListState;
 import org.apache.flink.api.common.state.ListStateDescriptor;
 import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
+import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
 import org.apache.flink.api.common.typeutils.base.LongSerializer;
 import org.apache.flink.api.common.typeutils.base.StringSerializer;
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.connector.file.sink.FileSink;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.KeyedStream;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.streaming.api.operators.util.SimpleVersionedListState;
 import org.apache.flink.util.Collector;
@@ -22,16 +33,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class InvokeOperator extends ProcessFunction<String,String> {
-
-    @Override
-    public void open(Configuration parameters) throws Exception {
-        super.open(parameters);
-        ValueStateDescriptor<List> descriptor =
-                new ValueStateDescriptor<List>("myListState", List.class);
-        state = getRuntimeContext().getState(descriptor);
-    }
-
+public class InvokeOperator extends ProcessFunction<String,String> implements CheckpointedFunction{
     /**
      * Process one element from the input stream.
      *
@@ -54,9 +56,33 @@ public class InvokeOperator extends ProcessFunction<String,String> {
      * alternative: use value state to store a java list
      * might use other liststate implimentation
      */
-    private transient ValueState<List> state;
+    private transient ListState<String> state;
+    private List<String> bufferedElements;
     public InvokeOperator(int threshold) {
         this.threshold = threshold;
+        this.bufferedElements = new ArrayList<>();
+    }
+
+    @Override
+    public void initializeState(FunctionInitializationContext context) throws Exception {
+        ListStateDescriptor<String> descriptor =
+                new ListStateDescriptor<>("lambdaBuffer", String.class);
+
+        state = context.getOperatorStateStore().getListState(descriptor);
+
+        if (context.isRestored()) {
+            for (String element : state.get()) {
+                bufferedElements.add(element);
+            }
+        }
+    }
+
+    @Override
+    public void snapshotState(FunctionSnapshotContext context) throws Exception {
+        state.clear();
+        for (String element : bufferedElements) {
+            state.add(element);
+        }
     }
 
     @Override
@@ -65,19 +91,15 @@ public class InvokeOperator extends ProcessFunction<String,String> {
          * add string to state
          */
 
-        // check length of state replace 10 to acutal number
-        int len=10;
-        if(len<threshold){
-            //store into the state
-        }
-        else{
-            List<String> list = state.value();
-            String payload = getPayload(list);
+        bufferedElements.add(value);
+        if (bufferedElements.size() >= threshold) {
+            String payload = getPayload(bufferedElements);
             String jsonResult = LambdaInvokerUsingURLPayload.invoke_lambda(payload);
             List<String> strings = getResultFromJson(jsonResult);
-            for(String i:strings){
+            for (String i : strings) {
                 out.collect(i);
             }
+            bufferedElements.clear();
         }
 
     }
@@ -95,9 +117,29 @@ public class InvokeOperator extends ProcessFunction<String,String> {
         return result;
     }
 
-    public static void main(String[] args) {
-        List<String> list = getResultFromJson("[\"aaa\",\"bbb\",\"ccc\"]");
-        System.out.println(list.get(1));
+    public static void main(String[] args) throws Exception{
+        // create a Flink execution environment
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        env.disableOperatorChaining();
+
+        //env.enableCheckpointing(100);
+        NexmarkConfiguration nexmarkConfiguration = new NexmarkConfiguration();
+        nexmarkConfiguration.bidProportion = 46;
+        GeneratorConfig generatorConfig = new GeneratorConfig(
+                nexmarkConfiguration, System.currentTimeMillis(), 1, 1000, 1);
+
+        // generate a stream of random strings
+        DataStream<String> randomStrings = env.addSource(new NexmarkSourceFunction<>(
+                generatorConfig,
+                (EventDeserializer<String>) Event::toString,
+                BasicTypeInfo.STRING_TYPE_INFO));
+
+        DataStream<String> invoker = randomStrings.process(new InvokeOperator(10));
+
+        FileSink sink=CustomedFileSink.getSink();
+        invoker.sinkTo(sink);
+
+        env.execute("Flink Pipeline Tokenization");
     }
 
 
