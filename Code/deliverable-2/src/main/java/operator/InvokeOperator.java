@@ -135,7 +135,7 @@ public class InvokeOperator extends ProcessFunction<String,String> implements Ch
                 (EventDeserializer<String>) Event::toString,
                 BasicTypeInfo.STRING_TYPE_INFO));
 
-        DataStream<String> invoker = randomStrings.process(new InvokeOperator(10));
+        DataStream<String> invoker = randomStrings.process(new InvokeOperator(10)).process(new AggregatorProcessFunction());
 
         invoker.print();
 

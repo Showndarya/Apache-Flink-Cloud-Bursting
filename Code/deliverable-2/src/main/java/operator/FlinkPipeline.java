@@ -45,9 +45,7 @@ public class FlinkPipeline {
 // Create a KeyedStream with a dummy key extractor function
         KeyedStream<Tuple2<String, Boolean>, String> keyedControlledStrings = controlledStrings.keyBy(t -> "");
 
-        DataStream<String> tokens = keyedControlledStrings.process(new TokenizerProcessFunction());
-
-
+        DataStream<String> tokens = keyedControlledStrings.process(new TokenizerProcessFunction()).process(new AggregatorProcessFunction());
 
         FileSink sink= CustomedFileSink.getSink();
         tokens.sinkTo(sink);
