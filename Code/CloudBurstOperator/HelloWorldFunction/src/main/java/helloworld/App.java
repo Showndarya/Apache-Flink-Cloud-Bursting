@@ -18,6 +18,8 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
  */
 public class App implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
+    private boolean isWarmed = false;
+
     public APIGatewayProxyResponseEvent handleRequest(final APIGatewayProxyRequestEvent input, final Context context) {
         Map<String, String> headers = new HashMap<>();
         headers.put("Content-Type", "application/json");
@@ -26,6 +28,18 @@ public class App implements RequestHandler<APIGatewayProxyRequestEvent, APIGatew
         APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent()
                 .withHeaders(headers);
         Gson gson = new Gson();
+
+        if (!isWarmed) {
+            // Do warm-up logic here
+            try {
+                String pageContents = getPageContents("https://www.example.com");
+                // Do something with page contents to simulate
+                // workload
+            } catch (IOException e) {
+                // Handle error
+            }
+            isWarmed = true;
+        }
 
         List<String> bodyList = Arrays.asList(input.getBody().split(","));
         List<String[]> tokensBatch = new ArrayList<>();
@@ -37,7 +51,7 @@ public class App implements RequestHandler<APIGatewayProxyRequestEvent, APIGatew
             tokensBatch.add(tokens);
         }
 
-        String output = String.format("{ \"data\": \"%s\" }", gson.toJson(tokensBatch));
+        String output = String.format("\"%s\"", gson.toJson(tokensBatch));
         return response
                 .withStatusCode(200)
                 .withBody(output);
