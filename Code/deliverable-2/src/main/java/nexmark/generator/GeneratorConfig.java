@@ -22,10 +22,7 @@ import nexmark.model.Event;
 import nexmark.utils.NexmarkUtils;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /** Parameters controlling how {@link NexmarkGenerator} synthesizes {@link Event} elements. */
 public class GeneratorConfig implements Serializable {
@@ -56,6 +53,8 @@ public class GeneratorConfig implements Serializable {
 
   /** Delay before changing the current inter-event delay. */
   private final long stepLengthSec;
+
+  private LinkedHashMap<Long, Long> runningTime;
 
   /** Time for first event (ms since epoch). */
   public final long baseTime;
@@ -103,6 +102,13 @@ public class GeneratorConfig implements Serializable {
 
     this.interEventDelayUs = configuration.rateShape.interEventDelayUs(configuration.firstEventRate, configuration.nextEventRate, configuration.rateUnit, configuration.numEventGenerators);
     this.stepLengthSec = configuration.rateShape.stepLengthSec(configuration.ratePeriodSec);
+    this.runningTime = new LinkedHashMap<Long, Long>(){
+      @Override
+      protected boolean removeEldestEntry(Map.Entry eldest) {
+        // Remove the eldest entry when the map size exceeds 3
+        return size() > 100;
+      }
+    };
     this.baseTime = baseTime;
     this.firstEventId = firstEventId;
     if (maxEventsOrZero == 0) {
@@ -263,15 +269,27 @@ public class GeneratorConfig implements Serializable {
    * What timestamp should the event with {@code eventNumber} have for this generator?
    */
   public long timestampForEvent(long eventNumber) {
+    if (runningTime.containsKey(eventNumber)) {
+      return baseTime + (long)(runningTime.get(eventNumber)) / 1000L;
+    }
     long[] stepLength = NexmarkUtils.stepLengthNum(interEventDelayUs, stepLengthSec);
     long delay = 0;
     long eventNumberModulo = eventNumber % stepLength[stepLength.length-1];
     for (int i = 0; i < stepLength.length; i++) {
       if (eventNumberModulo < stepLength[i]) {
         delay = interEventDelayUs[i];
+        break;
       }
     }
-    return baseTime + (long)(eventNumber * delay) / 1000L;
+    Random rand = new Random();
+    long randomized_delay = delay + rand.nextInt((int) (delay*0.2)) - (int) (delay*0.1);
+    if (runningTime.containsKey(eventNumber-1)) {
+      runningTime.put(eventNumber, runningTime.get(eventNumber-1)+randomized_delay);
+    }
+    else {
+      runningTime.put(eventNumber, randomized_delay);
+    }
+    return baseTime + (long)(runningTime.get(eventNumber)) / 1000L;
   }
 
   @Override
