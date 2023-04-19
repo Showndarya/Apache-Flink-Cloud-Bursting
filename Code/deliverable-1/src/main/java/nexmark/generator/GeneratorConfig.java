@@ -19,6 +19,7 @@ package nexmark.generator;
 
 import nexmark.NexmarkConfiguration;
 import nexmark.model.Event;
+import nexmark.utils.NexmarkUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -51,7 +52,7 @@ public class GeneratorConfig implements Serializable {
    * Delay between events, in microseconds. If the array has more than one entry then the rate is
    * changed every {@link #stepLengthSec}, and wraps around.
    */
-  private final double[] interEventDelayUs;
+  private final long[] interEventDelayUs;
 
   /** Delay before changing the current inter-event delay. */
   private final long stepLengthSec;
@@ -100,8 +101,7 @@ public class GeneratorConfig implements Serializable {
 
     this.configuration = configuration;
 
-    this.interEventDelayUs = new double[1];
-    this.interEventDelayUs[0] = 1000000.0  / configuration.firstEventRate  * configuration.numEventGenerators;
+    this.interEventDelayUs = configuration.rateShape.interEventDelayUs(configuration.firstEventRate, configuration.nextEventRate, configuration.rateUnit, configuration.numEventGenerators);
     this.stepLengthSec = configuration.rateShape.stepLengthSec(configuration.ratePeriodSec);
     this.baseTime = baseTime;
     this.firstEventId = firstEventId;
@@ -263,7 +263,15 @@ public class GeneratorConfig implements Serializable {
    * What timestamp should the event with {@code eventNumber} have for this generator?
    */
   public long timestampForEvent(long eventNumber) {
-      return baseTime + (long)(eventNumber * interEventDelayUs[0]) / 1000L;
+    long[] stepLength = NexmarkUtils.stepLengthNum(interEventDelayUs, stepLengthSec);
+    long delay = 0;
+    long eventNumberModulo = eventNumber % stepLength[stepLength.length-1];
+    for (int i = 0; i < stepLength.length; i++) {
+      if (eventNumberModulo < stepLength[i]) {
+        delay = interEventDelayUs[i];
+      }
+    }
+    return baseTime + (long)(eventNumber * delay) / 1000L;
   }
 
   @Override
