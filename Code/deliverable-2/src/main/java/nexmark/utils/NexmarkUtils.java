@@ -117,4 +117,17 @@ public class NexmarkUtils {
 			return (ratePeriodSec + n - 1) / n;
 		}
 	}
+
+	/**
+	 * Return number of events between steps.
+	 */
+	public static long[] stepLengthNum(long[] interEventDelayUs, long stepLengthSec) {
+		long total = 0;
+		long[] stepLength = new long[interEventDelayUs.length];
+		for (int i = 0; i < interEventDelayUs.length; i++) {
+			stepLength[i] = total + stepLengthSec * 1_000_000L / interEventDelayUs[i];
+			total = stepLength[i];
+		}
+		return stepLength;
+	}
 }
