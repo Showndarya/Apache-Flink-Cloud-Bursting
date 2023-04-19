@@ -41,16 +41,16 @@ public class NexmarkConfiguration implements Serializable {
 	@JsonProperty public NexmarkUtils.RateShape rateShape = NexmarkUtils.RateShape.SQUARE;
 
 	/** Initial overall event rate (in {@link #rateUnit}). */
-	@JsonProperty public int firstEventRate = 100;
+	@JsonProperty public int firstEventRate = 10;
 
 	/** Next overall event rate (in {@link #rateUnit}). */
-	@JsonProperty public int nextEventRate = 1000;
+	@JsonProperty public int nextEventRate = 100;
 
 	/** Unit for rates. */
 	@JsonProperty public NexmarkUtils.RateUnit rateUnit = NexmarkUtils.RateUnit.PER_SECOND;
 
 	/** Overall period of rate shape, in seconds. */
-	@JsonProperty public int ratePeriodSec = 10;
+	@JsonProperty public int ratePeriodSec = 20;
 
 	/**
 	 * Time in seconds to preload the subscription with data, at the initial input rate of the
