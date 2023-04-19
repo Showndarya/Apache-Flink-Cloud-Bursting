@@ -2,14 +2,10 @@ import json
 import re
 
 def hello(event, context):
-    print(event)
+    data = json.loads(str(event["body"]))
     responses=[]
-    for text in event["body"]:
+    for text in data:
         values = re.split(r"\W", text)
-        tokens = []
         for v in values:
-            tokens.extend(re.split(r"\s+", v))
-        response = json.dumps(tokens)
-        responses.append(response)
-
+            responses.append(v)
     return responses
