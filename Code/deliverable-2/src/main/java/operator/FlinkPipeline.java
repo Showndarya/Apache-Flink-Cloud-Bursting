@@ -37,7 +37,7 @@ public class FlinkPipeline {
         // Create a KeyedStream with a dummy key extractor function
         KeyedStream<Tuple2<String, Boolean>, String> keyedControlledStrings = falseControlledStrings.keyBy(t -> "");
         DataStream<String> tokens = keyedControlledStrings.process(new TokenizerProcessFunction());
-        DataStream<String> lambdaTokens=trueControlledStrings.process(new InvokeOperator(10));
+        DataStream<String> lambdaTokens=trueControlledStrings.process(new InvokeOperator(10,"lambda latency.csv","lambda throughput.csv"));
 
         DataStream<String> unionTokens = tokens.union(lambdaTokens);
         DataStream<String> aggregatedTokens = unionTokens.process(new AggregatorProcessFunction());
