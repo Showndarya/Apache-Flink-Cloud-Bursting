@@ -27,12 +27,10 @@ public class LambdaInvokerUsingURLPayload {
         JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
         String value = jsonObject.get("URL").getAsString();
         String functionUrl = value;
-        //String payload = "{\"body\": \"test test\"}\"}";
-        String payload = "{\"body\": \"" + payloadString + "\"}";
+        String payload = payloadString;
 
         URL url = new URL(functionUrl);
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
-//        con.setRequestMethod("GET");
         con.setRequestMethod("POST");
         con.setRequestProperty("Content-Type", "application/json");
         con.setDoOutput(true);
@@ -41,7 +39,6 @@ public class LambdaInvokerUsingURLPayload {
         out.flush();
         out.close();
         int responseCode = con.getResponseCode();
-//        System.out.println("response code", String.valueOf(responseCode));
         InputStream inputStream2 = con.getInputStream();
         BufferedReader in = new BufferedReader(new InputStreamReader(inputStream2, StandardCharsets.UTF_8));
 
@@ -53,12 +50,6 @@ public class LambdaInvokerUsingURLPayload {
         in.close();
 
         String jsonResponse = response.toString();
-//        String decodedJson = StringEscapeUtils.unescapeJava(jsonResponse);
-
-//        String[] parts = decodedJson.split(",");
-//        String[] newArray = new String[parts.length - 2];
-//        System.arraycopy(parts, 2, newArray, 0, newArray.length);
-//        System.out.println(Arrays.toString(newArray));
         return jsonResponse;
     }
 }
