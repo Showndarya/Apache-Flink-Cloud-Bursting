@@ -281,14 +281,15 @@ public class GeneratorConfig implements Serializable {
         break;
       }
     }
-    Random rand = new Random();
-    long randomized_delay = delay + rand.nextInt((int) (delay*0.2)) - (int) (delay*0.1);
+
+
     if (runningTime.containsKey(eventNumber-1)) {
-      runningTime.put(eventNumber, runningTime.get(eventNumber-1)+randomized_delay);
+      runningTime.put(eventNumber, runningTime.get(eventNumber-1)+delay);
     }
     else {
-      runningTime.put(eventNumber, randomized_delay);
+      runningTime.put(eventNumber, delay);
     }
+    System.out.println(" delay:"+delay+" eventNumber:"+eventNumber);
     return baseTime + (long)(runningTime.get(eventNumber)) / 1000L;
   }
 
