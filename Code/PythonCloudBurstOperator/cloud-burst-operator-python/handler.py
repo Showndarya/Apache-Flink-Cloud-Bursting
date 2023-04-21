@@ -2,11 +2,10 @@ import json
 import re
 
 def hello(event, context):
-    event_body = json.loads(event['body'])
-    values = re.split(r"\W", event_body["body"])
-    tokens = []
-    for v in values:
-        tokens.extend(re.split(r"\s+", v))
-    response = {"statusCode": 200, "body": json.dumps(tokens)}
-
-    return response
+    data = json.loads(str(event["body"]))
+    responses=[]
+    for text in data:
+        values = re.split(r"\W", text)
+        for v in values:
+            responses.append(v)
+    return responses

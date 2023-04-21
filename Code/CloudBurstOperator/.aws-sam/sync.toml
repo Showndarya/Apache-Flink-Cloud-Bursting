@@ -4,3 +4,6 @@
 dependency_layer = false
 
 [resource_sync_states]
+[resource_sync_states."ZipFunctionSyncFlow:HelloWorldFunction"]
+hash = "438c027fc2a86c2f4981977d249cc544b0426f4ed5b907b35a0191492939a5fe"
+sync_time = "2023-04-15T19:20:02.530171"

@@ -41,7 +41,7 @@ public class NexmarkConfiguration implements Serializable {
 	@JsonProperty public NexmarkUtils.RateShape rateShape = NexmarkUtils.RateShape.SQUARE;
 
 	/** Initial overall event rate (in {@link #rateUnit}). */
-	@JsonProperty public int firstEventRate = 100;
+	@JsonProperty public int firstEventRate = 10;
 
 	/** Next overall event rate (in {@link #rateUnit}). */
 	@JsonProperty public int nextEventRate = 100;
@@ -50,7 +50,7 @@ public class NexmarkConfiguration implements Serializable {
 	@JsonProperty public NexmarkUtils.RateUnit rateUnit = NexmarkUtils.RateUnit.PER_SECOND;
 
 	/** Overall period of rate shape, in seconds. */
-	@JsonProperty public int ratePeriodSec = 60;
+	@JsonProperty public int ratePeriodSec = 20;
 
 	/**
 	 * Time in seconds to preload the subscription with data, at the initial input rate of the
@@ -150,65 +150,65 @@ public class NexmarkConfiguration implements Serializable {
 		if (o == null || getClass() != o.getClass()) return false;
 		NexmarkConfiguration that = (NexmarkConfiguration) o;
 		return numEvents == that.numEvents &&
-			numEventGenerators == that.numEventGenerators &&
-			firstEventRate == that.firstEventRate &&
-			nextEventRate == that.nextEventRate &&
-			ratePeriodSec == that.ratePeriodSec &&
-			preloadSeconds == that.preloadSeconds &&
-			streamTimeout == that.streamTimeout &&
-			isRateLimited == that.isRateLimited &&
-			useWallclockEventTime == that.useWallclockEventTime &&
-			personProportion == that.personProportion &&
-			auctionProportion == that.auctionProportion &&
-			bidProportion == that.bidProportion &&
-			avgPersonByteSize == that.avgPersonByteSize &&
-			avgAuctionByteSize == that.avgAuctionByteSize &&
-			avgBidByteSize == that.avgBidByteSize &&
-			hotAuctionRatio == that.hotAuctionRatio &&
-			hotSellersRatio == that.hotSellersRatio &&
-			hotBiddersRatio == that.hotBiddersRatio &&
-			windowSizeSec == that.windowSizeSec &&
-			windowPeriodSec == that.windowPeriodSec &&
-			watermarkHoldbackSec == that.watermarkHoldbackSec &&
-			numInFlightAuctions == that.numInFlightAuctions &&
-			numActivePeople == that.numActivePeople &&
-			occasionalDelaySec == that.occasionalDelaySec &&
-			Double.compare(that.probDelayedEvent, probDelayedEvent) == 0 &&
-			outOfOrderGroupSize == that.outOfOrderGroupSize &&
-			rateShape == that.rateShape &&
-			rateUnit == that.rateUnit;
+				numEventGenerators == that.numEventGenerators &&
+				firstEventRate == that.firstEventRate &&
+				nextEventRate == that.nextEventRate &&
+				ratePeriodSec == that.ratePeriodSec &&
+				preloadSeconds == that.preloadSeconds &&
+				streamTimeout == that.streamTimeout &&
+				isRateLimited == that.isRateLimited &&
+				useWallclockEventTime == that.useWallclockEventTime &&
+				personProportion == that.personProportion &&
+				auctionProportion == that.auctionProportion &&
+				bidProportion == that.bidProportion &&
+				avgPersonByteSize == that.avgPersonByteSize &&
+				avgAuctionByteSize == that.avgAuctionByteSize &&
+				avgBidByteSize == that.avgBidByteSize &&
+				hotAuctionRatio == that.hotAuctionRatio &&
+				hotSellersRatio == that.hotSellersRatio &&
+				hotBiddersRatio == that.hotBiddersRatio &&
+				windowSizeSec == that.windowSizeSec &&
+				windowPeriodSec == that.windowPeriodSec &&
+				watermarkHoldbackSec == that.watermarkHoldbackSec &&
+				numInFlightAuctions == that.numInFlightAuctions &&
+				numActivePeople == that.numActivePeople &&
+				occasionalDelaySec == that.occasionalDelaySec &&
+				Double.compare(that.probDelayedEvent, probDelayedEvent) == 0 &&
+				outOfOrderGroupSize == that.outOfOrderGroupSize &&
+				rateShape == that.rateShape &&
+				rateUnit == that.rateUnit;
 	}
 
 	@Override
 	public int hashCode() {
 		return Objects.hash(
-			numEvents,
-			numEventGenerators,
-			rateShape,
-			firstEventRate,
-			nextEventRate,
-			rateUnit,
-			ratePeriodSec,
-			preloadSeconds,
-			streamTimeout,
-			isRateLimited,
-			useWallclockEventTime,
-			personProportion,
-			auctionProportion,
-			bidProportion,
-			avgPersonByteSize,
-			avgAuctionByteSize,
-			avgBidByteSize,
-			hotAuctionRatio,
-			hotSellersRatio,
-			hotBiddersRatio,
-			windowSizeSec,
-			windowPeriodSec,
-			watermarkHoldbackSec,
-			numInFlightAuctions,
-			numActivePeople,
-			occasionalDelaySec,
-			probDelayedEvent,
-			outOfOrderGroupSize);
+				numEvents,
+				numEventGenerators,
+				rateShape,
+				firstEventRate,
+				nextEventRate,
+				rateUnit,
+				ratePeriodSec,
+				preloadSeconds,
+				streamTimeout,
+				isRateLimited,
+				useWallclockEventTime,
+				personProportion,
+				auctionProportion,
+				bidProportion,
+				avgPersonByteSize,
+				avgAuctionByteSize,
+				avgBidByteSize,
+				hotAuctionRatio,
+				hotSellersRatio,
+				hotBiddersRatio,
+				windowSizeSec,
+				windowPeriodSec,
+				watermarkHoldbackSec,
+				numInFlightAuctions,
+				numActivePeople,
+				occasionalDelaySec,
+				probDelayedEvent,
+				outOfOrderGroupSize);
 	}
 }
