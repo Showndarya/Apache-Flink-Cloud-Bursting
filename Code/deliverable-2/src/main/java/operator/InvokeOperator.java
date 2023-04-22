@@ -1,5 +1,7 @@
 package operator;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import entity.TokenObject;
@@ -22,9 +24,14 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.util.Collector;
 
+import java.io.BufferedReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.Type;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -36,7 +43,8 @@ public class InvokeOperator extends ProcessFunction<String,String> implements Ch
         fileWriter.write('\n');
         fileWriter.flush();
         fileWriter.close();
-        fileWriter1.write('\n');
+        double totaltime = System.currentTimeMillis()-totalstart;
+        fileWriter1.write((numProceeded/(totaltime/1000))+",");
         fileWriter1.flush();
         fileWriter1.close();
     }
@@ -56,7 +64,7 @@ public class InvokeOperator extends ProcessFunction<String,String> implements Ch
      *                   operation to fail and may trigger recovery.
      */
 
-    private final int threshold;
+    private int threshold;
 
     private  final String latencyName;
     private  final String throughputName;
@@ -73,6 +81,13 @@ public class InvokeOperator extends ProcessFunction<String,String> implements Ch
     private transient FileWriter fileWriter1;
 
     private double startTime;
+    private double totalstart;
+
+    private int numProceeded;
+
+    private double time;
+
+    private double interval = 1000;
 
     @Override
     public void open(Configuration parameters) throws Exception {
@@ -81,6 +96,9 @@ public class InvokeOperator extends ProcessFunction<String,String> implements Ch
         System.out.println(this.throughputName);
         fileWriter=new FileWriter(latencyName,true);
         fileWriter1 = new FileWriter(throughputName, true);
+        totalstart = System.currentTimeMillis();
+        numProceeded = 0;
+        time = System.currentTimeMillis();
 
     }
 
@@ -116,6 +134,24 @@ public class InvokeOperator extends ProcessFunction<String,String> implements Ch
 
     @Override
     public void processElement(String value, ProcessFunction<String, String>.Context ctx, Collector<String> out) throws Exception {
+        numProceeded++;
+
+        if(System.currentTimeMillis()-time>=interval){
+            String jobid = getjobid();
+            double inputRate = getInputRate(jobid);
+            if(inputRate<=21){
+                threshold=1;
+            }else if(inputRate<=33){
+                threshold=2;
+            } else if (inputRate<=41) {
+                threshold=3;
+            } else {
+                threshold=4;
+            }
+            time=System.currentTimeMillis();
+            System.out.println("input rate is " + inputRate);
+            System.out.println("new batch size is "+threshold);
+        }
         /**
          * add string to state
          */
@@ -135,11 +171,9 @@ public class InvokeOperator extends ProcessFunction<String,String> implements Ch
                 out.collect(i);
             }
             double latency = (System.currentTimeMillis()-startTime);
-            System.out.println(latency+"---------------------------------------------------------------------------------------");
+//            System.out.println(latency+"---------------------------------------------------------------------------------------");
             fileWriter.write(latency+",");
             fileWriter.flush();
-            fileWriter1.write((threshold/(latency/1000))+",");
-            fileWriter1.flush();
             bufferedElements.clear();
         }
 
@@ -177,8 +211,84 @@ public class InvokeOperator extends ProcessFunction<String,String> implements Ch
         return result;
     }
 
+    private String getjobid() throws Exception {
+        System.out.println("#################################### We are here");
+        URL url = new URL("http://localhost:8081/jobs");
+        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+        con.setRequestMethod("GET");
+        BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+        String inputLine;
+
+        StringBuilder sb = new StringBuilder();
+        while ((inputLine = in.readLine()) != null) {
+            System.out.println("The input line is" + inputLine);
+            sb.append(inputLine);
+        }
+        in.close();
+        System.out.println("The string being considered is" + sb);
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode jsonNode = mapper.readTree(sb.toString());
+        JsonNode jobs = jsonNode.get("jobs");
+        String jobID = null;
+        for (JsonNode job : jobs) {
+            if (job.get("status").asText().equals("RUNNING")) {
+
+                jobID = job.get("id").asText();
+                System.out.println("Job ID: " + jobID);
+            }
+        }
+        return jobID;
+    }
+
+    private double getInputRate(String jobID) throws Exception {
+        String taskName = getRuntimeContext().getTaskName();
+
+        URL url = new URL("http://localhost:8081/jobs/" + jobID);
+        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+        con.setRequestMethod("GET");
+
+        BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+        String inputLine;
+        StringBuilder sb = new StringBuilder();
+        while ((inputLine = in.readLine()) != null) {
+            sb.append(inputLine);
+        }
+        in.close();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode = objectMapper.readTree(sb.toString());
+
+        String vertexId = null;
+        for (JsonNode vertexNode : jsonNode.get("vertices")) {
+            String vertexName = vertexNode.get("name").asText();
+            if (vertexName.equals(taskName)) {
+                vertexId = vertexNode.get("id").asText();
+                break;
+            }
+        }
+
+        url = new URL("http://localhost:8081/jobs/" + jobID + "/vertices/" + vertexId + "/metrics/" + "?get=0.numRecordsIn");
+        con = (HttpURLConnection) url.openConnection();
+        con.setRequestMethod("GET");
+
+        in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+        sb = new StringBuilder();
+        while ((inputLine = in.readLine()) != null) {
+            sb.append(inputLine);
+        }
+        in.close();
+
+
+        ObjectMapper mapper = new ObjectMapper();
+        jsonNode = mapper.readTree(sb.toString());
+        JsonNode metricNode = jsonNode.get(0);
+        double metricValue = metricNode.get("value").asDouble();
+        return metricValue;
+    }
+
+
     public static void main(String[] args) throws Exception{
-        int[] arr = new int[]{10};
+        int[] arr = new int[]{4};
         for(int j:arr) {
             for (int i = 0; i < 1; i++) {
                 // create a Flink execution environment
@@ -198,14 +308,18 @@ public class InvokeOperator extends ProcessFunction<String,String> implements Ch
                         (EventDeserializer<String>) Event::toString,
                         BasicTypeInfo.STRING_TYPE_INFO));
 
-                DataStream<String> invoker = randomStrings.process(new InvokeOperator(j, "new warm start latency"+j+".csv","new warm start throughput"+j+".csv"));
+                DataStream<String> invoker = randomStrings.process(new InvokeOperator(j, "java latency "+j+".csv","java throughput.csv"));
 
-                invoker.print();
+//                invoker.print();
 
                 env.execute("Flink Pipeline Tokenization");
                 System.out.println("11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111");
-                TimeUnit.SECONDS.sleep(10);
+                TimeUnit.SECONDS.sleep(20);
             }
+            FileWriter fileWriter = new FileWriter("java throughput.csv", true);
+            fileWriter.write('\n');
+            fileWriter.flush();
+            fileWriter.close();
         }
     }
 
