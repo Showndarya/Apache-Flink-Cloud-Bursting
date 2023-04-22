@@ -79,9 +79,10 @@ public class NexmarkUtils {
 			switch (this) {
 				case SQUARE:
 				{
-					long[] interEventDelayUs = new long[2];
-					interEventDelayUs[0] = unit.rateToPeriodUs(firstRate) * numGenerators;
-					interEventDelayUs[1] = unit.rateToPeriodUs(nextRate) * numGenerators;
+					long[] interEventDelayUs = new long[N];
+					for (int i = 0; i < N-1; i++) {
+						interEventDelayUs[i] = unit.rateToPeriodUs(firstRate) * numGenerators;}
+					interEventDelayUs[N-1] = unit.rateToPeriodUs(nextRate) * numGenerators;
 					return interEventDelayUs;
 				}
 				case SINE:
@@ -105,16 +106,7 @@ public class NexmarkUtils {
 		 * cycle through the entire sequence every {@code ratePeriodSec}.
 		 */
 		public int stepLengthSec(int ratePeriodSec) {
-			int n = 0;
-			switch (this) {
-				case SQUARE:
-					n = 2;
-					break;
-				case SINE:
-					n = N;
-					break;
-			}
-			return (ratePeriodSec + n - 1) / n;
+			return (ratePeriodSec + N - 1) / N;
 		}
 	}
 
