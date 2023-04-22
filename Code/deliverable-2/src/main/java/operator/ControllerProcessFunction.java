@@ -3,53 +3,51 @@ package operator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.util.Collector;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-public class ControllerProcessFunction extends ProcessFunction<String, Tuple2<String,Boolean>> {
+public class ControllerProcessFunction extends ProcessFunction<String, Tuple2<String, Boolean>> {
 
     private static final int MEASURE_INTERVAL_MS = 450;
-    private static int INPUT_THRESHOLD = 1;
-    private static double CPU_THRESHOLD = 0.6;
+    private static final int INPUT_THRESHOLD = 1;
+    private static final double CPU_THRESHOLD = 0.6;
+
 
     private long lastMeasureTime;
     private int messageCount;
-    private boolean shouldOffload;
+    boolean shouldOffload = false;
 
     public ControllerProcessFunction() {
         lastMeasureTime = System.currentTimeMillis();
         messageCount = 0;
-        shouldOffload = false;
+
     }
 
     @Override
-    public void processElement(String value, ProcessFunction<String, Tuple2<String,Boolean>>.Context ctx, Collector<Tuple2<String,Boolean>> out) throws Exception {
+    public void processElement(String value, Context ctx, Collector<Tuple2<String, Boolean>> out) throws Exception {
         long currentTime = System.currentTimeMillis();
         messageCount++;
 
-        if (messageCount == 1) {
-            currentTime = lastMeasureTime;
-        }
-
         if (currentTime - lastMeasureTime >= MEASURE_INTERVAL_MS) {
             String job_id = getjobid();
-            double inputRate = getInputRate(job_id);
-            double cputil = getCPUtil();
+            Double inputRate = getInputRate(job_id);
+            Double cputil = getCPUtil();
             shouldOffload = inputRate > INPUT_THRESHOLD || cputil > CPU_THRESHOLD;
             messageCount = 0;
             lastMeasureTime = currentTime;
+            out.collect(new Tuple2<>(value, shouldOffload));
+        } else {
+            out.collect(new Tuple2<>(value, shouldOffload));
         }
-
-        out.collect(new Tuple2<>(value, shouldOffload));
     }
 
     private String getjobid() throws Exception {
-        System.out.println("#################################### We are here");
         URL url = new URL("http://localhost:8081/jobs");
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("GET");
@@ -77,7 +75,7 @@ public class ControllerProcessFunction extends ProcessFunction<String, Tuple2<St
         return jobID;
     }
 
-    private double getInputRate(String jobID) throws Exception {
+    private Double getInputRate(String jobID) throws Exception {
         String taskName = getRuntimeContext().getTaskName();
 
         URL url = new URL("http://localhost:8081/jobs/" + jobID);
@@ -119,8 +117,13 @@ public class ControllerProcessFunction extends ProcessFunction<String, Tuple2<St
         ObjectMapper mapper = new ObjectMapper();
         jsonNode = mapper.readTree(sb.toString());
         JsonNode metricNode = jsonNode.get(0);
-        double metricValue = metricNode.get("value").asDouble();
-        return metricValue;
+        Double metricValue = metricNode.get("value").asDouble();
+        if (metricValue != null) {
+            return metricValue;
+        } else {
+            return 0.0; // Return a default value if metric is not available
+        }
+
     }
 
     private double getCPUtil() throws Exception {
@@ -138,9 +141,15 @@ public class ControllerProcessFunction extends ProcessFunction<String, Tuple2<St
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonNode = mapper.readTree(sb.toString());
         JsonNode metricNode = jsonNode.get(0);
-        double cputilValue = metricNode.get("value").asDouble();
-        return cputilValue;
+        Double cputilValue = metricNode.get("value").asDouble();
+
+        if (cputilValue != null) {
+            return cputilValue;
+        } else {
+            return 0.0; // Return a default value if metric is not available
+        }
     }
+
 
 }
 
