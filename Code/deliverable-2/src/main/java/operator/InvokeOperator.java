@@ -92,14 +92,13 @@ public class InvokeOperator extends ProcessFunction<String,String> implements Ch
     @Override
     public void open(Configuration parameters) throws Exception {
         super.open(parameters);
-//        System.out.println(this.latencyName);
+        System.out.println(this.latencyName);
 //        System.out.println(this.throughputName);
 //        fileWriter=new FileWriter(latencyName,true);
 //        fileWriter1 = new FileWriter(throughputName, true);
 //        totalstart = System.currentTimeMillis();
 //        numProceeded = 0;
         time = System.currentTimeMillis();
-
     }
 
     public InvokeOperator(int threshold, String latencyName, String throughputName) throws IOException {

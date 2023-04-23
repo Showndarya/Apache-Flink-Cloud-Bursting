@@ -3,7 +3,6 @@ package operator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.util.Collector;
 
@@ -17,7 +16,6 @@ public class ControllerProcessFunction extends ProcessFunction<String, Tuple2<St
     private static final int MEASURE_INTERVAL_MS = 450;
     private static final int INPUT_THRESHOLD = 1;
     private static final double CPU_THRESHOLD = 0.6;
-
 
     private long lastMeasureTime;
     private int messageCount;
@@ -38,7 +36,7 @@ public class ControllerProcessFunction extends ProcessFunction<String, Tuple2<St
             String job_id = getjobid();
             Double inputRate = getInputRate(job_id);
             Double cputil = getCPUtil();
-            shouldOffload = inputRate > INPUT_THRESHOLD || cputil > CPU_THRESHOLD;
+            boolean shouldOffload = inputRate > INPUT_THRESHOLD || cputil > CPU_THRESHOLD;
             messageCount = 0;
             lastMeasureTime = currentTime;
             out.collect(new Tuple2<>(value, shouldOffload));
@@ -67,7 +65,6 @@ public class ControllerProcessFunction extends ProcessFunction<String, Tuple2<St
         String jobID = null;
         for (JsonNode job : jobs) {
             if (job.get("status").asText().equals("RUNNING")) {
-
                 jobID = job.get("id").asText();
                 System.out.println("Job ID: " + jobID);
             }
@@ -117,13 +114,14 @@ public class ControllerProcessFunction extends ProcessFunction<String, Tuple2<St
         ObjectMapper mapper = new ObjectMapper();
         jsonNode = mapper.readTree(sb.toString());
         JsonNode metricNode = jsonNode.get(0);
-        Double metricValue = metricNode.get("value").asDouble();
-        if (metricValue != null) {
-            return metricValue;
-        } else {
-            return 0.0; // Return a default value if metric is not available
+        if(metricNode!=null&& metricNode.get("value") != null) {
+            Double metricValue = metricNode.get("value").asDouble();
+            if (metricValue != null) {
+                return metricValue;
+            }
         }
 
+        return 0.0;
     }
 
     private double getCPUtil() throws Exception {
@@ -141,15 +139,15 @@ public class ControllerProcessFunction extends ProcessFunction<String, Tuple2<St
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonNode = mapper.readTree(sb.toString());
         JsonNode metricNode = jsonNode.get(0);
-        Double cputilValue = metricNode.get("value").asDouble();
 
-        if (cputilValue != null) {
-            return cputilValue;
-        } else {
-            return 0.0; // Return a default value if metric is not available
+        if(metricNode!=null&& metricNode.get("value") != null) {
+            Double cputilValue = metricNode.get("value").asDouble();
+            if (cputilValue != null) {
+                return cputilValue;
+            }
         }
+
+        return 0.0;
     }
-
-
 }
 

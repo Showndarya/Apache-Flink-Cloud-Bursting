@@ -30,6 +30,7 @@ operator/CustomedFileSink.class
 nexmark/generator/model/BidGenerator.class
 nexmark/model/Person.class
 lambda/LambdaInvoker.class
+nexmark/generator/GeneratorConfig$1.class
 lambda/LambdaInvokerUsingURLPayload.class
 lambda/LambdaInvokerUsingURL.class
 nexmark/utils/NexmarkUtils.class
