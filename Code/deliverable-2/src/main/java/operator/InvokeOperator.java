@@ -92,7 +92,7 @@ public class InvokeOperator extends ProcessFunction<String,String> implements Ch
     @Override
     public void open(Configuration parameters) throws Exception {
         super.open(parameters);
-        System.out.println(this.latencyName);
+//        System.out.println(this.latencyName);
 //        System.out.println(this.throughputName);
 //        fileWriter=new FileWriter(latencyName,true);
 //        fileWriter1 = new FileWriter(throughputName, true);
@@ -161,9 +161,9 @@ public class InvokeOperator extends ProcessFunction<String,String> implements Ch
         /**
          * add string to state
          */
-        if(bufferedElements.size()==0){
-            startTime=System.currentTimeMillis();
-        }
+//        if(bufferedElements.size()==0){
+//            startTime=System.currentTimeMillis();
+//        }
         bufferedElements.add(value);
         if (bufferedElements.size() >= threshold) {
             String payload = getPayload(bufferedElements);
@@ -176,7 +176,7 @@ public class InvokeOperator extends ProcessFunction<String,String> implements Ch
             for (String i : strings) {
                 out.collect(i);
             }
-            double latency = (System.currentTimeMillis()-startTime);
+//            double latency = (System.currentTimeMillis()-startTime);
 //            System.out.println(latency+"---------------------------------------------------------------------------------------");
 //            fileWriter.write(latency+",");
 //            fileWriter.flush();
@@ -237,7 +237,6 @@ public class InvokeOperator extends ProcessFunction<String,String> implements Ch
         String jobID = null;
         for (JsonNode job : jobs) {
             if (job.get("status").asText().equals("RUNNING")) {
-
                 jobID = job.get("id").asText();
                 System.out.println("Job ID: " + jobID);
             }
@@ -287,13 +286,14 @@ public class InvokeOperator extends ProcessFunction<String,String> implements Ch
         ObjectMapper mapper = new ObjectMapper();
         jsonNode = mapper.readTree(sb.toString());
         JsonNode metricNode = jsonNode.get(0);
-        Double metricValue = metricNode.get("value").asDouble();
-        if (metricValue != null) {
-            return metricValue;
-        } else {
-            return 0.0; // Return a default value if metric is not available
+        if(metricNode!=null&& metricNode.get("value") != null) {
+            Double metricValue = metricNode.get("value").asDouble();
+            if (metricValue != null) {
+                return metricValue;
+            }
         }
 
+        return 0.0;
     }
 
 
