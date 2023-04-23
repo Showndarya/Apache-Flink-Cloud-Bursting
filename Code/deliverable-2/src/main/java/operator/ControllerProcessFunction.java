@@ -7,6 +7,7 @@ import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.util.Collector;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -20,11 +21,12 @@ public class ControllerProcessFunction extends ProcessFunction<String, Tuple2<St
     private long lastMeasureTime;
     private int messageCount;
     boolean shouldOffload = false;
+    private String URL_BASE="http://localhost:8081/";
+    private String JOBS_QUERY_PARAM="jobs";
 
     public ControllerProcessFunction() {
         lastMeasureTime = System.currentTimeMillis();
         messageCount = 0;
-
     }
 
     @Override
@@ -36,6 +38,7 @@ public class ControllerProcessFunction extends ProcessFunction<String, Tuple2<St
             String job_id = getjobid();
             Double inputRate = getInputRate(job_id);
             Double cputil = getCPUtil();
+
             boolean shouldOffload = inputRate > INPUT_THRESHOLD || cputil > CPU_THRESHOLD;
             messageCount = 0;
             lastMeasureTime = currentTime;
@@ -46,21 +49,8 @@ public class ControllerProcessFunction extends ProcessFunction<String, Tuple2<St
     }
 
     private String getjobid() throws Exception {
-        URL url = new URL("http://localhost:8081/jobs");
-        HttpURLConnection con = (HttpURLConnection) url.openConnection();
-        con.setRequestMethod("GET");
-        BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-        String inputLine;
-
-        StringBuilder sb = new StringBuilder();
-        while ((inputLine = in.readLine()) != null) {
-            System.out.println("The input line is" + inputLine);
-            sb.append(inputLine);
-        }
-        in.close();
-        System.out.println("The string being considered is" + sb);
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode jsonNode = mapper.readTree(sb.toString());
+        URL url = new URL(URL_BASE+JOBS_QUERY_PARAM);
+        JsonNode jsonNode = OpenUrlConnection(url);
         JsonNode jobs = jsonNode.get("jobs");
         String jobID = null;
         for (JsonNode job : jobs) {
@@ -75,20 +65,9 @@ public class ControllerProcessFunction extends ProcessFunction<String, Tuple2<St
     private Double getInputRate(String jobID) throws Exception {
         String taskName = getRuntimeContext().getTaskName();
 
-        URL url = new URL("http://localhost:8081/jobs/" + jobID);
-        HttpURLConnection con = (HttpURLConnection) url.openConnection();
-        con.setRequestMethod("GET");
-
-        BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+        URL url = new URL(URL_BASE+JOBS_QUERY_PARAM+"/" + jobID);
+        JsonNode jsonNode = OpenUrlConnection(url);
         String inputLine;
-        StringBuilder sb = new StringBuilder();
-        while ((inputLine = in.readLine()) != null) {
-            sb.append(inputLine);
-        }
-        in.close();
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jsonNode = objectMapper.readTree(sb.toString());
 
         String vertexId = null;
         for (JsonNode vertexNode : jsonNode.get("vertices")) {
@@ -99,20 +78,8 @@ public class ControllerProcessFunction extends ProcessFunction<String, Tuple2<St
             }
         }
 
-        url = new URL("http://localhost:8081/jobs/" + jobID + "/vertices/" + vertexId + "/metrics/" + "?get=0.numRecordsIn");
-        con = (HttpURLConnection) url.openConnection();
-        con.setRequestMethod("GET");
-
-        in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-        sb = new StringBuilder();
-        while ((inputLine = in.readLine()) != null) {
-            sb.append(inputLine);
-        }
-        in.close();
-
-
-        ObjectMapper mapper = new ObjectMapper();
-        jsonNode = mapper.readTree(sb.toString());
+        url = new URL(URL_BASE+JOBS_QUERY_PARAM+"/" + jobID + "/vertices/" + vertexId + "/metrics/" + "?get=0.numRecordsIn");
+        jsonNode = OpenUrlConnection(url);
         JsonNode metricNode = jsonNode.get(0);
         if(metricNode!=null&& metricNode.get("value") != null) {
             Double metricValue = metricNode.get("value").asDouble();
@@ -125,19 +92,8 @@ public class ControllerProcessFunction extends ProcessFunction<String, Tuple2<St
     }
 
     private double getCPUtil() throws Exception {
-        URL url = new URL("http://localhost:8081/jobmanager/" + "metrics" + "?get=Status.JVM.CPU.Load");
-        HttpURLConnection con = (HttpURLConnection) url.openConnection();
-        con.setRequestMethod("GET");
-
-        BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-        String inputLine;
-        StringBuilder sb = new StringBuilder();
-        while ((inputLine = in.readLine()) != null) {
-            sb.append(inputLine);
-        }
-        in.close();
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode jsonNode = mapper.readTree(sb.toString());
+        URL url = new URL(URL_BASE+"jobmanager/" + "metrics" + "?get=Status.JVM.CPU.Load");
+        JsonNode jsonNode = OpenUrlConnection(url);
         JsonNode metricNode = jsonNode.get(0);
 
         if(metricNode!=null&& metricNode.get("value") != null) {
@@ -148,6 +104,27 @@ public class ControllerProcessFunction extends ProcessFunction<String, Tuple2<St
         }
 
         return 0.0;
+    }
+
+    private JsonNode OpenUrlConnection(URL url) throws IOException {
+        HttpURLConnection con = openConnection(url);
+        con.setRequestMethod("GET");
+
+        BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+        String inputLine;
+        StringBuilder sb = new StringBuilder();
+        while ((inputLine = in.readLine()) != null) {
+            sb.append(inputLine);
+        }
+        in.close();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode = objectMapper.readTree(sb.toString());
+        return jsonNode;
+    }
+
+    private static HttpURLConnection openConnection(URL url) throws IOException {
+        return (HttpURLConnection) url.openConnection();
     }
 }
 
