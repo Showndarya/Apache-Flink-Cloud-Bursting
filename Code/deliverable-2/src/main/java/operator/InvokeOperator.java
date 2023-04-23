@@ -40,13 +40,13 @@ public class InvokeOperator extends ProcessFunction<String,String> implements Ch
     @Override
     public void close() throws Exception {
         super.close();
-        fileWriter.write('\n');
-        fileWriter.flush();
-        fileWriter.close();
-        double totaltime = System.currentTimeMillis()-totalstart;
-        fileWriter1.write((numProceeded/(totaltime/1000))+",");
-        fileWriter1.flush();
-        fileWriter1.close();
+//        fileWriter.write('\n');
+//        fileWriter.flush();
+//        fileWriter.close();
+//        double totaltime = System.currentTimeMillis()-totalstart;
+//        fileWriter1.write((numProceeded/(totaltime/1000))+",");
+//        fileWriter1.flush();
+//        fileWriter1.close();
     }
 
     /**
@@ -66,8 +66,8 @@ public class InvokeOperator extends ProcessFunction<String,String> implements Ch
 
     private int threshold;
 
-    private  final String latencyName;
-    private  final String throughputName;
+//    private  final String latencyName;
+//    private  final String throughputName;
     /**
      * Todo find suitable implementation
      * How to create a list state
@@ -87,25 +87,32 @@ public class InvokeOperator extends ProcessFunction<String,String> implements Ch
 
     private double time;
 
-    private double interval = 1000;
+    private double interval = 10000;
 
     @Override
     public void open(Configuration parameters) throws Exception {
         super.open(parameters);
-        System.out.println(this.latencyName);
-        System.out.println(this.throughputName);
-        fileWriter=new FileWriter(latencyName,true);
-        fileWriter1 = new FileWriter(throughputName, true);
-        totalstart = System.currentTimeMillis();
-        numProceeded = 0;
+//        System.out.println(this.latencyName);
+//        System.out.println(this.throughputName);
+//        fileWriter=new FileWriter(latencyName,true);
+//        fileWriter1 = new FileWriter(throughputName, true);
+//        totalstart = System.currentTimeMillis();
+//        numProceeded = 0;
         time = System.currentTimeMillis();
 
     }
 
     public InvokeOperator(int threshold, String latencyName, String throughputName) throws IOException {
         this.threshold = threshold;
-        this.latencyName = latencyName;
-        this.throughputName = throughputName;
+//        this.latencyName = latencyName;
+//        this.throughputName = throughputName;
+        this.bufferedElements = new ArrayList<>();
+    }
+
+    public InvokeOperator() throws IOException {
+        this.threshold = 4;
+//        this.latencyName = latencyName;
+//        this.throughputName = throughputName;
         this.bufferedElements = new ArrayList<>();
     }
 
@@ -134,7 +141,7 @@ public class InvokeOperator extends ProcessFunction<String,String> implements Ch
 
     @Override
     public void processElement(String value, ProcessFunction<String, String>.Context ctx, Collector<String> out) throws Exception {
-        numProceeded++;
+//        numProceeded++;
 
         if(System.currentTimeMillis()-time>=interval){
             String jobid = getjobid();
@@ -172,8 +179,8 @@ public class InvokeOperator extends ProcessFunction<String,String> implements Ch
             }
             double latency = (System.currentTimeMillis()-startTime);
 //            System.out.println(latency+"---------------------------------------------------------------------------------------");
-            fileWriter.write(latency+",");
-            fileWriter.flush();
+//            fileWriter.write(latency+",");
+//            fileWriter.flush();
             bufferedElements.clear();
         }
 
@@ -212,7 +219,6 @@ public class InvokeOperator extends ProcessFunction<String,String> implements Ch
     }
 
     private String getjobid() throws Exception {
-        System.out.println("#################################### We are here");
         URL url = new URL("http://localhost:8081/jobs");
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("GET");
@@ -240,7 +246,7 @@ public class InvokeOperator extends ProcessFunction<String,String> implements Ch
         return jobID;
     }
 
-    private double getInputRate(String jobID) throws Exception {
+    private Double getInputRate(String jobID) throws Exception {
         String taskName = getRuntimeContext().getTaskName();
 
         URL url = new URL("http://localhost:8081/jobs/" + jobID);
@@ -282,8 +288,13 @@ public class InvokeOperator extends ProcessFunction<String,String> implements Ch
         ObjectMapper mapper = new ObjectMapper();
         jsonNode = mapper.readTree(sb.toString());
         JsonNode metricNode = jsonNode.get(0);
-        double metricValue = metricNode.get("value").asDouble();
-        return metricValue;
+        Double metricValue = metricNode.get("value").asDouble();
+        if (metricValue != null) {
+            return metricValue;
+        } else {
+            return 0.0; // Return a default value if metric is not available
+        }
+
     }
 
 
@@ -308,7 +319,7 @@ public class InvokeOperator extends ProcessFunction<String,String> implements Ch
                         (EventDeserializer<String>) Event::toString,
                         BasicTypeInfo.STRING_TYPE_INFO));
 
-                DataStream<String> invoker = randomStrings.process(new InvokeOperator(j, "java latency "+j+".csv","java throughput.csv"));
+                DataStream<String> invoker = randomStrings.process(new InvokeOperator());
 
 //                invoker.print();
 
@@ -316,10 +327,10 @@ public class InvokeOperator extends ProcessFunction<String,String> implements Ch
                 System.out.println("11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111");
                 TimeUnit.SECONDS.sleep(20);
             }
-            FileWriter fileWriter = new FileWriter("java throughput.csv", true);
-            fileWriter.write('\n');
-            fileWriter.flush();
-            fileWriter.close();
+//            FileWriter fileWriter = new FileWriter("java throughput.csv", true);
+//            fileWriter.write('\n');
+//            fileWriter.flush();
+//            fileWriter.close();
         }
     }
 
