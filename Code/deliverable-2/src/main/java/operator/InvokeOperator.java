@@ -3,8 +3,6 @@ package operator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import entity.TokenObject;
 import lambda.LambdaInvokerUsingURLPayload;
 import nexmark.NexmarkConfiguration;
 import nexmark.generator.GeneratorConfig;
@@ -17,26 +15,28 @@ import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
-import org.apache.flink.shaded.asm9.org.objectweb.asm.TypeReference;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.ProcessFunction;
+import org.apache.flink.streaming.api.functions.windowing.ProcessAllWindowFunction;
+import org.apache.flink.streaming.api.windowing.assigners.TumblingProcessingTimeWindows;
+import org.apache.flink.streaming.api.windowing.time.Time;
+import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.util.Collector;
 
 import java.io.BufferedReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.sql.Time;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class InvokeOperator extends ProcessFunction<String,String> implements CheckpointedFunction{
+public class InvokeOperator extends ProcessAllWindowFunction<String, String, TimeWindow> implements CheckpointedFunction {
+
+
     @Override
     public void close() throws Exception {
         super.close();
@@ -109,7 +109,7 @@ public class InvokeOperator extends ProcessFunction<String,String> implements Ch
     }
 
     public InvokeOperator() throws IOException {
-        this.threshold = 4;
+        this.threshold = 100;
 //        this.latencyName = latencyName;
 //        this.throughputName = throughputName;
         this.bufferedElements = new ArrayList<>();
@@ -139,48 +139,49 @@ public class InvokeOperator extends ProcessFunction<String,String> implements Ch
     }
 
     @Override
-    public void processElement(String value, ProcessFunction<String, String>.Context ctx, Collector<String> out) throws Exception {
+    public void process(Context context, Iterable<String> elements, Collector<String> out) throws Exception {
+
 //        numProceeded++;
-
-        if(System.currentTimeMillis()-time>=interval){
-            String jobid = getjobid();
-            double inputRate = getInputRate(jobid);
-            if(inputRate<=21){
-                threshold=1;
-            }else if(inputRate<=33){
-                threshold=2;
-            } else if (inputRate<=41) {
-                threshold=3;
-            } else {
-                threshold=4;
+        for (String value: elements) {
+            if (System.currentTimeMillis() - time >= interval) {
+                String jobid = getjobid();
+                double inputRate = getInputRate(jobid);
+                if (inputRate <= 21) {
+                    threshold = 1;
+                } else if (inputRate <= 33) {
+                    threshold = 2;
+                } else if (inputRate <= 41) {
+                    threshold = 3;
+                } else {
+                    threshold = 100;
+                }
+                time = System.currentTimeMillis();
+                System.out.println("input rate is " + inputRate);
+                System.out.println("new batch size is " + threshold);
             }
-            time=System.currentTimeMillis();
-            System.out.println("input rate is " + inputRate);
-            System.out.println("new batch size is "+threshold);
-        }
-        /**
-         * add string to state
-         */
-//        if(bufferedElements.size()==0){
-//            startTime=System.currentTimeMillis();
-//        }
-        bufferedElements.add(value);
-        if (bufferedElements.size() >= threshold) {
-            String payload = getPayload(bufferedElements);
-            String jsonResult = LambdaInvokerUsingURLPayload.invoke_lambda(payload);
+
+            /**
+             * add string to state
+             */
+            //        if(bufferedElements.size()==0){
+            //            startTime=System.currentTimeMillis();
+            //        }
+            bufferedElements.add(value);
+            if (bufferedElements.size() >= threshold) {
+                String payload = getPayload(bufferedElements);
+                String jsonResult = LambdaInvokerUsingURLPayload.invoke_lambda(payload);
 
 
-
-
-            List<String> strings = getResultFromJsonJava(jsonResult);
-            for (String i : strings) {
-                out.collect(i);
+                List<String> strings = getResultFromJsonPython(jsonResult);
+                for (String i : strings) {
+                    out.collect(i);
+                }
+                //            double latency = (System.currentTimeMillis()-startTime);
+                //            System.out.println(latency+"---------------------------------------------------------------------------------------");
+                //            fileWriter.write(latency+",");
+                //            fileWriter.flush();
+                bufferedElements.clear();
             }
-//            double latency = (System.currentTimeMillis()-startTime);
-//            System.out.println(latency+"---------------------------------------------------------------------------------------");
-//            fileWriter.write(latency+",");
-//            fileWriter.flush();
-            bufferedElements.clear();
         }
 
     }
@@ -318,7 +319,7 @@ public class InvokeOperator extends ProcessFunction<String,String> implements Ch
                         (EventDeserializer<String>) Event::toString,
                         BasicTypeInfo.STRING_TYPE_INFO));
 
-                DataStream<String> invoker = randomStrings.process(new InvokeOperator());
+                DataStream<String> invoker = randomStrings.windowAll(TumblingProcessingTimeWindows.of(Time.milliseconds(10))).process(new InvokeOperator());
 
 //                invoker.print();
 
