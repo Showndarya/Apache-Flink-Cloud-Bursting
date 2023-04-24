@@ -92,7 +92,7 @@ public class InvokeOperator extends ProcessAllWindowFunction<String, String, Tim
     @Override
     public void open(Configuration parameters) throws Exception {
         super.open(parameters);
-        System.out.println(this.latencyName);
+//        System.out.println(this.latencyName);
 //        System.out.println(this.throughputName);
 //        fileWriter=new FileWriter(latencyName,true);
 //        fileWriter1 = new FileWriter(throughputName, true);
@@ -140,12 +140,11 @@ public class InvokeOperator extends ProcessAllWindowFunction<String, String, Tim
 
     @Override
     public void process(Context context, Iterable<String> elements, Collector<String> out) throws Exception {
-
 //        numProceeded++;
         for (String value: elements) {
             if (System.currentTimeMillis() - time >= interval) {
-                String jobid = getjobid();
-                double inputRate = getInputRate(jobid);
+                String jobid = MetricUtilities.getjobid();
+                double inputRate = MetricUtilities.getInputRate(jobid,getRuntimeContext().getTaskName());
                 if (inputRate <= 21) {
                     threshold = 1;
                 } else if (inputRate <= 33) {
@@ -217,86 +216,6 @@ public class InvokeOperator extends ProcessAllWindowFunction<String, String, Tim
 //        System.out.println(result);
         return result;
     }
-
-    private String getjobid() throws Exception {
-        URL url = new URL("http://localhost:8081/jobs");
-        HttpURLConnection con = (HttpURLConnection) url.openConnection();
-        con.setRequestMethod("GET");
-        BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-        String inputLine;
-
-        StringBuilder sb = new StringBuilder();
-        while ((inputLine = in.readLine()) != null) {
-            System.out.println("The input line is" + inputLine);
-            sb.append(inputLine);
-        }
-        in.close();
-        System.out.println("The string being considered is" + sb);
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode jsonNode = mapper.readTree(sb.toString());
-        JsonNode jobs = jsonNode.get("jobs");
-        String jobID = null;
-        for (JsonNode job : jobs) {
-            if (job.get("status").asText().equals("RUNNING")) {
-                jobID = job.get("id").asText();
-                System.out.println("Job ID: " + jobID);
-            }
-        }
-        return jobID;
-    }
-
-    private Double getInputRate(String jobID) throws Exception {
-        String taskName = getRuntimeContext().getTaskName();
-
-        URL url = new URL("http://localhost:8081/jobs/" + jobID);
-        HttpURLConnection con = (HttpURLConnection) url.openConnection();
-        con.setRequestMethod("GET");
-
-        BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-        String inputLine;
-        StringBuilder sb = new StringBuilder();
-        while ((inputLine = in.readLine()) != null) {
-            sb.append(inputLine);
-        }
-        in.close();
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jsonNode = objectMapper.readTree(sb.toString());
-
-        String vertexId = null;
-        for (JsonNode vertexNode : jsonNode.get("vertices")) {
-            String vertexName = vertexNode.get("name").asText();
-            if (vertexName.equals(taskName)) {
-                vertexId = vertexNode.get("id").asText();
-                break;
-            }
-        }
-
-        url = new URL("http://localhost:8081/jobs/" + jobID + "/vertices/" + vertexId + "/metrics/" + "?get=0.numRecordsIn");
-        con = (HttpURLConnection) url.openConnection();
-        con.setRequestMethod("GET");
-
-        in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-        sb = new StringBuilder();
-        while ((inputLine = in.readLine()) != null) {
-            sb.append(inputLine);
-        }
-        in.close();
-
-
-        ObjectMapper mapper = new ObjectMapper();
-        jsonNode = mapper.readTree(sb.toString());
-        JsonNode metricNode = jsonNode.get(0);
-        if(metricNode!=null&& metricNode.get("value") != null) {
-            Double metricValue = metricNode.get("value").asDouble();
-            if (metricValue != null) {
-                return metricValue;
-            }
-        }
-
-        return 0.0;
-    }
-
 
     public static void main(String[] args) throws Exception{
         int[] arr = new int[]{4};
