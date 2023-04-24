@@ -41,14 +41,14 @@ public class FlinkPipeline {
                     }
                 });
 
+        //filter strings to offload
         DataStream<Tuple2<String,Boolean>> controlledStrings = randomStrings
                 .windowAll(TumblingProcessingTimeWindows.of(Time.milliseconds(10)))
                 .process(new ControllerProcessFunction());
         DataStream<String> trueControlledStrings = controlledStrings.filter(tuple -> tuple.f1.equals(true)).map(tuple -> tuple.f0);
         DataStream<Tuple2<String, Boolean>> falseControlledStrings = controlledStrings.filter(tuple -> tuple.f1.equals(false));
 
-        // Create a KeyedStream with a dummy key extractor function
-//        KeyedStream<Tuple2<String, Boolean>, String> keyedControlledStrings = falseControlledStrings.keyBy(t -> "");
+
         DataStream<String> tokens = falseControlledStrings
                 .windowAll(TumblingProcessingTimeWindows.of(Time.milliseconds(10)))
                 .process(new TokenizerProcessFunction())
@@ -58,6 +58,8 @@ public class FlinkPipeline {
                         return System.currentTimeMillis();
                     }
                 });
+
+        //offload to lambda
         DataStream<String> lambdaTokens=trueControlledStrings
                 .windowAll(TumblingProcessingTimeWindows.of(Time.milliseconds(10)))
                 .process(new InvokeOperator())
@@ -68,6 +70,7 @@ public class FlinkPipeline {
                     }
                 });
 
+        //aggregate results
         DataStream<String> unionTokens = tokens.union(lambdaTokens);
         DataStream<String> aggregatedTokens = unionTokens.windowAll(TumblingProcessingTimeWindows.of(Time.milliseconds(10)))
                 .process(new AggregatorProcessFunction())
@@ -79,7 +82,7 @@ public class FlinkPipeline {
                 })
                 .map(token -> String.format("%s @ %d", token, System.currentTimeMillis())); // add timestamp to string
 
-
+        //add to sink
         FileSink sink= CustomedFileSink.getSink();
         aggregatedTokens.sinkTo(sink);
         env.execute("Flink Pipeline Tokenization");
