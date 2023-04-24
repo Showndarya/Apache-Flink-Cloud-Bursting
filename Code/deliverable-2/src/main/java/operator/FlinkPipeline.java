@@ -1,9 +1,7 @@
 package operator;
-import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.connector.file.sink.FileSink;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
 import org.apache.flink.api.java.tuple.Tuple2;
 import nexmark.NexmarkConfiguration;
@@ -12,11 +10,9 @@ import nexmark.model.Event;
 import nexmark.source.NexmarkSourceFunction;
 import nexmark.source.EventDeserializer;
 import org.apache.flink.streaming.api.functions.AscendingTimestampExtractor;
-import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingProcessingTimeWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
 
-import java.time.Duration;
 
 public class FlinkPipeline {
 
@@ -25,6 +21,8 @@ public class FlinkPipeline {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.disableOperatorChaining();
         env.getConfig().setAutoWatermarkInterval(1000L);
+        env.getConfig().setLatencyTrackingInterval(500);
+
 //        env.enableCheckpointing(100);
         NexmarkConfiguration nexmarkConfiguration = new NexmarkConfiguration();
         nexmarkConfiguration.bidProportion = 46;
@@ -84,7 +82,6 @@ public class FlinkPipeline {
 
         FileSink sink= CustomedFileSink.getSink();
         aggregatedTokens.sinkTo(sink);
-
         env.execute("Flink Pipeline Tokenization");
     }
 

@@ -8,11 +8,11 @@ import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.util.Collector;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Random;
 
 public class ControllerProcessFunction extends ProcessAllWindowFunction<String, Tuple2<String, Boolean>, TimeWindow> {
 
@@ -24,6 +24,10 @@ public class ControllerProcessFunction extends ProcessAllWindowFunction<String, 
     private int messageCount;
     boolean shouldOffload = false;
 
+    private String URL_BASE="http://localhost:8081/";
+    private String JOBS_QUERY_PARAM="jobs";
+
+
     public ControllerProcessFunction() {
         lastMeasureTime = 0;
         messageCount = 0;
@@ -33,34 +37,39 @@ public class ControllerProcessFunction extends ProcessAllWindowFunction<String, 
     @Override
     public void process(Context context, Iterable<String> values, Collector<Tuple2<String, Boolean>> out) throws Exception {
         long currentTime = System.currentTimeMillis();
+        Random rand = new Random();
         messageCount++;
 
         if (currentTime - lastMeasureTime >= MEASURE_INTERVAL_MS) {
             String job_id = getjobid();
             Double inputRate = getInputRate(job_id);
-            Double cputil = getCPUtil();
+            Long busyTimeMs = getBusyTime(job_id);
 
-            boolean shouldOffload = inputRate > INPUT_THRESHOLD || cputil > CPU_THRESHOLD;
-            System.out.println("current input rate " + inputRate);
-            System.out.println("current cpu util rate " + cputil);
+            Double busyTimeRatio = Math.max((double) (busyTimeMs/1000), 0.8);
+            System.out.println("busy time ratio" + busyTimeRatio);
+
+            double offloading_ratio = rand.nextDouble()*inputRate;
+            if(busyTimeRatio > CPU_THRESHOLD) {
+                shouldOffload = true;
+            } else {
+                if(offloading_ratio < INPUT_THRESHOLD) {
+                    shouldOffload = true;
+                } else {
+                    shouldOffload = false;
+                }
+            }
             messageCount = 0;
             lastMeasureTime = currentTime;
-            if (shouldOffload) {
-                for (String value : values) {
-                    if (Math.random() < 0.8) {
-                        out.collect(new Tuple2<>(value, true));
-                    } else {
-                        out.collect(new Tuple2<>(value, false));
-                    }
-                }
-
-            } else {
-                for (String value : values) {
-                    out.collect(new Tuple2<>(value, false));
-                }
+            for(String value:values) {
+                out.collect(new Tuple2<>(value, shouldOffload));
+            }
+        } else {
+            for(String value:values) {
+                out.collect(new Tuple2<>(value, shouldOffload));
             }
         }
     }
+
 
     private String getjobid() throws Exception {
         URL url = new URL("http://localhost:8081/jobs");
@@ -88,6 +97,35 @@ public class ControllerProcessFunction extends ProcessAllWindowFunction<String, 
         }
         return jobID;
     }
+
+    private Long getBusyTime(String jobID) throws Exception {
+        String taskName = getRuntimeContext().getTaskName();
+
+        URL url = new URL(URL_BASE+JOBS_QUERY_PARAM+"/" + jobID);
+        JsonNode jsonNode = OpenUrlConnection(url);
+        String inputLine;
+
+        String vertexId = null;
+        for (JsonNode vertexNode : jsonNode.get("vertices")) {
+            String vertexName = vertexNode.get("name").asText();
+            if (vertexName.equals(taskName)) {
+                vertexId = vertexNode.get("id").asText();
+                break;
+            }
+        }
+
+        url = new URL(URL_BASE+JOBS_QUERY_PARAM+"/" + jobID + "/vertices/" + vertexId + "/metrics/" + "?get=0.busyTimeMsPerSecond");
+        jsonNode = OpenUrlConnection(url);
+        JsonNode metricNode = jsonNode.get(0);
+        if(metricNode!=null&& metricNode.get("value") != null) {
+            Long metricValue = metricNode.get("value").asLong();
+            if (metricValue != null) {
+                return metricValue;
+            }
+        }
+        return 0L;
+    }
+
 
     private Double getInputRate(String jobID) throws Exception {
         String taskName = getRuntimeContext().getTaskName();
@@ -117,6 +155,7 @@ public class ControllerProcessFunction extends ProcessAllWindowFunction<String, 
         }
 
         url = new URL("http://localhost:8081/jobs/" + jobID + "/vertices/" + vertexId + "/metrics/" + "?get=0.numRecordsIn");
+        System.out.println("metrics url: http://localhost:8081/jobs/" + jobID + "/vertices/" + vertexId + "/metrics/");
         con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("GET");
 
@@ -166,5 +205,26 @@ public class ControllerProcessFunction extends ProcessAllWindowFunction<String, 
 
         return 0.0;
     }
+    private JsonNode OpenUrlConnection(URL url) throws IOException {
+        HttpURLConnection con = openConnection(url);
+        con.setRequestMethod("GET");
+
+        BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+        String inputLine;
+        StringBuilder sb = new StringBuilder();
+        while ((inputLine = in.readLine()) != null) {
+            sb.append(inputLine);
+        }
+        in.close();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode = objectMapper.readTree(sb.toString());
+        return jsonNode;
+    }
+
+    private static HttpURLConnection openConnection(URL url) throws IOException {
+        return (HttpURLConnection) url.openConnection();
+    }
 }
+
 
