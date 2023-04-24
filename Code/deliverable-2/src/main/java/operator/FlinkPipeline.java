@@ -21,7 +21,6 @@ public class FlinkPipeline {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.disableOperatorChaining();
         env.getConfig().setAutoWatermarkInterval(1000L);
-        env.getConfig().setLatencyTrackingInterval(500);
 
 //        env.enableCheckpointing(100);
         NexmarkConfiguration nexmarkConfiguration = new NexmarkConfiguration();
@@ -41,14 +40,15 @@ public class FlinkPipeline {
                     }
                 });
 
+        //evaluate policy
         DataStream<Tuple2<String,Boolean>> controlledStrings = randomStrings
                 .windowAll(TumblingProcessingTimeWindows.of(Time.milliseconds(10)))
                 .process(new ControllerProcessFunction());
+
+        //filter records to send to lambda and tokenizer
         DataStream<String> trueControlledStrings = controlledStrings.filter(tuple -> tuple.f1.equals(true)).map(tuple -> tuple.f0);
         DataStream<Tuple2<String, Boolean>> falseControlledStrings = controlledStrings.filter(tuple -> tuple.f1.equals(false));
 
-        // Create a KeyedStream with a dummy key extractor function
-//        KeyedStream<Tuple2<String, Boolean>, String> keyedControlledStrings = falseControlledStrings.keyBy(t -> "");
         DataStream<String> tokens = falseControlledStrings
                 .windowAll(TumblingProcessingTimeWindows.of(Time.milliseconds(10)))
                 .process(new TokenizerProcessFunction())
@@ -68,6 +68,7 @@ public class FlinkPipeline {
                     }
                 });
 
+        //combine the strings and send to the aggregator process function
         DataStream<String> unionTokens = tokens.union(lambdaTokens);
         DataStream<String> aggregatedTokens = unionTokens.windowAll(TumblingProcessingTimeWindows.of(Time.milliseconds(10)))
                 .process(new AggregatorProcessFunction())
@@ -79,7 +80,7 @@ public class FlinkPipeline {
                 })
                 .map(token -> String.format("%s @ %d", token, System.currentTimeMillis())); // add timestamp to string
 
-
+        //send to sink
         FileSink sink= CustomedFileSink.getSink();
         aggregatedTokens.sinkTo(sink);
         env.execute("Flink Pipeline Tokenization");
