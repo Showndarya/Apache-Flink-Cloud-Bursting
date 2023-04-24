@@ -25,13 +25,17 @@ public class ControllerProcessFunction extends ProcessFunction<String, Tuple2<St
     private String JOBS_QUERY_PARAM="jobs";
 
     public ControllerProcessFunction() {
-        lastMeasureTime = System.currentTimeMillis();
+        lastMeasureTime = 0;
         messageCount = 0;
     }
 
     @Override
     public void processElement(String value, Context ctx, Collector<Tuple2<String, Boolean>> out) throws Exception {
-        long currentTime = System.currentTimeMillis();
+        long currentTime = ctx.timerService().currentProcessingTime();
+        if(lastMeasureTime == 0)
+        {
+            lastMeasureTime = ctx.timerService().currentProcessingTime();
+        }
         messageCount++;
 
         if (currentTime - lastMeasureTime >= MEASURE_INTERVAL_MS) {
