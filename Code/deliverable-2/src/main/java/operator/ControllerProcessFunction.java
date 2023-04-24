@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Random;
 
 public class ControllerProcessFunction extends ProcessFunction<String, Tuple2<String, Boolean>> {
 
@@ -32,23 +33,42 @@ public class ControllerProcessFunction extends ProcessFunction<String, Tuple2<St
     @Override
     public void processElement(String value, Context ctx, Collector<Tuple2<String, Boolean>> out) throws Exception {
         long currentTime = ctx.timerService().currentProcessingTime();
-        if(lastMeasureTime == 0)
-        {
-            lastMeasureTime = ctx.timerService().currentProcessingTime();
-        }
+        Random rand = new Random();
         messageCount++;
 
         if (currentTime - lastMeasureTime >= MEASURE_INTERVAL_MS) {
             String job_id = getjobid();
             Double inputRate = getInputRate(job_id);
+            double offloading_ratio = rand.nextDouble()*inputRate;
             Double cputil = getCPUtil();
-
-            boolean shouldOffload = inputRate > INPUT_THRESHOLD || cputil > CPU_THRESHOLD;
+            if(cputil > CPU_THRESHOLD){
+                shouldOffload = true;
+            }else{
+                if(offloading_ratio < INPUT_THRESHOLD){
+                    shouldOffload = true;
+                }else{
+                    shouldOffload = false;
+                }
+            }
             messageCount = 0;
             lastMeasureTime = currentTime;
             out.collect(new Tuple2<>(value, shouldOffload));
         } else {
+            Double cputil = getCPUtil();
+            String job_id = getjobid();
+            Double inputRate = getInputRate(job_id);
+            double offloading_ratio = rand.nextDouble()*inputRate;
+            if(cputil > CPU_THRESHOLD){
+                shouldOffload = true;
+            }else{
+                if(offloading_ratio < INPUT_THRESHOLD){
+                    shouldOffload = true;
+                }else{
+                    shouldOffload = false;
+                }
+            }
             out.collect(new Tuple2<>(value, shouldOffload));
+
         }
     }
 
