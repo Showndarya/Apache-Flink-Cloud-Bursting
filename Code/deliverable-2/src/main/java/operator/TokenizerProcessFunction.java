@@ -1,6 +1,5 @@
 package operator;
 
-import lambda.LambdaInvokerUsingURLPayload;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.functions.windowing.ProcessAllWindowFunction;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
@@ -9,9 +8,7 @@ import org.apache.flink.util.Collector;
 import java.util.Arrays;
 
 public class TokenizerProcessFunction extends ProcessAllWindowFunction<Tuple2<String, Boolean>, String, TimeWindow> {
-//    private static boolean isBusy = false;
-//    private static int totalElemProcessed = 0;
-//    private static int numOfElemProcessedByLambda = 0;
+
     private static int numOfElemProcessedByProcessFn = 0;
 
     @Override
