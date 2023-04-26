@@ -1,7 +1,5 @@
 package operator;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import lambda.LambdaInvokerUsingURLPayload;
 import nexmark.NexmarkConfiguration;
@@ -12,6 +10,7 @@ import nexmark.source.NexmarkSourceFunction;
 import org.apache.flink.api.common.state.ListState;
 import org.apache.flink.api.common.state.ListStateDescriptor;
 import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.state.FunctionInitializationContext;
 import org.apache.flink.runtime.state.FunctionSnapshotContext;
@@ -19,23 +18,16 @@ import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.windowing.ProcessAllWindowFunction;
-import org.apache.flink.streaming.api.windowing.assigners.TumblingProcessingTimeWindows;
-import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.util.Collector;
 
-import java.io.BufferedReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class InvokeOperator extends ProcessAllWindowFunction<String, String, TimeWindow> implements CheckpointedFunction {
-
+public class InvokeOperator extends ProcessAllWindowFunction<Tuple2<String,Long>, Tuple2<String,Long>, TimeWindow> implements CheckpointedFunction {
 
     @Override
     public void close() throws Exception {
@@ -87,7 +79,7 @@ public class InvokeOperator extends ProcessAllWindowFunction<String, String, Tim
 
     private double time;
 
-    private double interval = 10000;
+    private final int interval = 8000;
 
     @Override
     public void open(Configuration parameters) throws Exception {
@@ -139,24 +131,24 @@ public class InvokeOperator extends ProcessAllWindowFunction<String, String, Tim
     }
 
     @Override
-    public void process(Context context, Iterable<String> elements, Collector<String> out) throws Exception {
+    public void process(Context context, Iterable<Tuple2<String,Long>> elements, Collector<Tuple2<String,Long>> out) throws Exception {
 //        numProceeded++;
-        for (String value: elements) {
+        for (Tuple2<String,Long> value: elements) {
             if (System.currentTimeMillis() - time >= interval) {
                 String jobid = MetricUtilities.getjobid();
                 double inputRate = MetricUtilities.getInputRate(jobid,getRuntimeContext().getTaskName());
-                if (inputRate <= 21) {
-                    threshold = 1;
-                } else if (inputRate <= 33) {
-                    threshold = 2;
-                } else if (inputRate <= 41) {
-                    threshold = 3;
-                } else {
+                if (inputRate <= 250) {
+                    threshold = 50;
+                } else if (inputRate <= 500) {
                     threshold = 100;
+                } else if (inputRate <= 750) {
+                    threshold = 200;
+                } else {
+                    threshold = 400;
                 }
                 time = System.currentTimeMillis();
-                System.out.println("input rate is " + inputRate);
-                System.out.println("new batch size is " + threshold);
+//                System.out.println("input rate is " + inputRate);
+//                System.out.println("new batch size is " + threshold);
             }
 
             /**
@@ -165,7 +157,7 @@ public class InvokeOperator extends ProcessAllWindowFunction<String, String, Tim
             //        if(bufferedElements.size()==0){
             //            startTime=System.currentTimeMillis();
             //        }
-            bufferedElements.add(value);
+            bufferedElements.add(value.f0);
             if (bufferedElements.size() >= threshold) {
                 String payload = getPayload(bufferedElements);
                 String jsonResult = LambdaInvokerUsingURLPayload.invoke_lambda(payload);
@@ -173,7 +165,7 @@ public class InvokeOperator extends ProcessAllWindowFunction<String, String, Tim
 
                 List<String> strings = getResultFromJsonPython(jsonResult);
                 for (String i : strings) {
-                    out.collect(i);
+                    out.collect(Tuple2.of(i,value.f1));
                 }
                 //            double latency = (System.currentTimeMillis()-startTime);
                 //            System.out.println(latency+"---------------------------------------------------------------------------------------");
@@ -238,7 +230,7 @@ public class InvokeOperator extends ProcessAllWindowFunction<String, String, Tim
                         (EventDeserializer<String>) Event::toString,
                         BasicTypeInfo.STRING_TYPE_INFO));
 
-                DataStream<String> invoker = randomStrings.windowAll(TumblingProcessingTimeWindows.of(Time.milliseconds(10))).process(new InvokeOperator());
+//                DataStream<String> invoker = randomStrings.windowAll(TumblingProcessingTimeWindows.of(Time.milliseconds(10))).process(new InvokeOperator());
 
 //                invoker.print();
 

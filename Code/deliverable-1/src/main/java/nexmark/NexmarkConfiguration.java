@@ -32,7 +32,7 @@ public class NexmarkConfiguration implements Serializable {
 	 * internal counters etc.
 	 */
 	@JsonProperty
-	public long numEvents = 10000;
+	public long numEvents = 1000;
 
 	/** Number of event generators to use. Each generates events in its own timeline. */
 	@JsonProperty public int numEventGenerators = 1;
@@ -41,7 +41,7 @@ public class NexmarkConfiguration implements Serializable {
 	@JsonProperty public NexmarkUtils.RateShape rateShape = NexmarkUtils.RateShape.SQUARE;
 
 	/** Initial overall event rate (in {@link #rateUnit}). */
-	@JsonProperty public int firstEventRate = 100;
+	@JsonProperty public int firstEventRate = 1000;
 
 	/** Next overall event rate (in {@link #rateUnit}). */
 	@JsonProperty public int nextEventRate = 1000;
