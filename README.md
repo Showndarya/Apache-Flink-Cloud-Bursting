@@ -74,10 +74,14 @@ Although the lambda functions are already deployed with an exposed API gateway, 
 
 **Experimental Setup**:
 - **Pipelines**:
-    ![Baseline 1](assets/baseline1.png "Baseline 1")
-    ![Baseline 2](assets/baseline2.png "Baseline 2")
-    Apart from the Figure 1 solution pipeline, for comparison, we also ran our experiments on 2 baseline pipelines.
 
+    Apart from the Figure 1 solution pipeline, for comparison, we also ran our experiments on 2 baseline pipelines.
+    - **Baseline 1**
+    ![Baseline 1](assets/Baseline1.png "Baseline 1")
+     - **Baseline 2**
+    ![Baseline 2](assets/Baseline2.png "Baseline 2")
+
+- **Measurements**:
     - **Parallelism**:
         1. The input rate is set to 500 events/sec and 100000 events are generated from source.
         2. The job paralellism is set to 1,2,4,8 and the completion is measured.
@@ -92,11 +96,11 @@ Although the lambda functions are already deployed with an exposed API gateway, 
         2. Metric calculation delay values tested - 450 ms, 750ms, 1000ms, 1200ms, 1350ms.
         3. The completion time and the accumulated backpressure is tested
 
-- **Lambda**: 
-    1. The pipeline is run from the source to the invoker operator, removing all the other operators.
-    2. Batch size:
-        - Java: 1-10; step size=1 
-        - Python: 1-10; step size=1 and 20-100; step size=10
-    3. 5 experiments are run on each batch size
-    4. Latency is measured for each batch
-and throughput is measured for all the data.
+    - **Lambda**: 
+        1. The pipeline is run from the source to the invoker operator, removing all the other operators.
+        2. Batch size:
+            - Java: 1-10; step size=1 
+            - Python: 1-10; step size=1 and 20-100; step size=10
+        3. 5 experiments are run on each batch size
+        4. Latency is measured for each batch
+    and throughput is measured for all the data.
