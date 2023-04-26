@@ -1,4 +1,6 @@
 package operator;
+import org.apache.flink.api.common.typeinfo.Types;
+import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.connector.file.sink.FileSink;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -21,7 +23,6 @@ public class FlinkPipeline {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.disableOperatorChaining();
         env.getConfig().setAutoWatermarkInterval(1000L);
-        env.getConfig().setLatencyTrackingInterval(500);
 
 //        env.enableCheckpointing(100);
         NexmarkConfiguration nexmarkConfiguration = new NexmarkConfiguration();
@@ -31,62 +32,73 @@ public class FlinkPipeline {
 
         // generate a stream of random strings
         DataStream<String> randomStrings = env.addSource(new NexmarkSourceFunction<>(
-                generatorConfig,
-                (EventDeserializer<String>) Event::toString,
-                BasicTypeInfo.STRING_TYPE_INFO))
+                        generatorConfig,
+                        (EventDeserializer<String>) Event::toString,
+                        BasicTypeInfo.STRING_TYPE_INFO))
                 .assignTimestampsAndWatermarks(new AscendingTimestampExtractor<String>() {
                     @Override
                     public long extractAscendingTimestamp(String element) {
                         return System.currentTimeMillis();
                     }
                 });
+        DataStream<Tuple2<String, Long>> tokens = randomStrings
+                .map(tuple -> Tuple2.of(tuple, System.currentTimeMillis()))
+                .returns(Types.TUPLE(Types.STRING, Types.LONG));
 
         //filter strings to offload
-        DataStream<Tuple2<String,Boolean>> controlledStrings = randomStrings
+        DataStream<Tuple3<String,Long, Boolean>> controlledStrings = tokens
                 .windowAll(TumblingProcessingTimeWindows.of(Time.milliseconds(10)))
-                .process(new ControllerProcessFunction());
-        DataStream<String> trueControlledStrings = controlledStrings.filter(tuple -> tuple.f1.equals(true)).map(tuple -> tuple.f0);
-        DataStream<Tuple2<String, Boolean>> falseControlledStrings = controlledStrings.filter(tuple -> tuple.f1.equals(false));
+                .process(new ControllerProcessFunction())
+                .returns(Types.TUPLE(Types.STRING, Types.LONG, Types.BOOLEAN));
+
+        DataStream<Tuple2<String,Long>> trueControlledStrings = controlledStrings.filter(tuple -> tuple.f2.equals(true))
+                .map(tuple -> Tuple2.of(tuple.f0,tuple.f1)).returns(Types.TUPLE(Types.STRING, Types.LONG));
+
+        DataStream<Tuple3<String, Long, Boolean>> falseControlledStrings = controlledStrings
+                .filter(tuple -> tuple.f2.equals(false)).returns(Types.TUPLE(Types.STRING, Types.LONG, Types.BOOLEAN));
 
 
-        DataStream<String> tokens = falseControlledStrings
+        DataStream<Tuple2<String,Long>> timedTokens = falseControlledStrings
                 .windowAll(TumblingProcessingTimeWindows.of(Time.milliseconds(10)))
                 .process(new TokenizerProcessFunction())
-                .assignTimestampsAndWatermarks(new AscendingTimestampExtractor<String>() {
+                .assignTimestampsAndWatermarks(new AscendingTimestampExtractor<Tuple2<String,Long>>() {
                     @Override
-                    public long extractAscendingTimestamp(String element) {
-                        return System.currentTimeMillis();
+                    public long extractAscendingTimestamp(Tuple2<String,Long> element) {
+                        return System.currentTimeMillis(); // use the second field of the tuple as the timestamp
                     }
-                });
+                }).returns(Types.TUPLE(Types.STRING, Types.LONG));;
 
         //offload to lambda
-        DataStream<String> lambdaTokens=trueControlledStrings
+        DataStream<Tuple2<String,Long>> lambdaTokens=trueControlledStrings
                 .windowAll(TumblingProcessingTimeWindows.of(Time.milliseconds(10)))
                 .process(new InvokeOperator())
-                .assignTimestampsAndWatermarks(new AscendingTimestampExtractor<String>() {
+                .assignTimestampsAndWatermarks(new AscendingTimestampExtractor<Tuple2<String,Long>>() {
                     @Override
-                    public long extractAscendingTimestamp(String element) {
-                        return System.currentTimeMillis();
+                    public long extractAscendingTimestamp(Tuple2<String,Long> element) {
+                        return System.currentTimeMillis(); // use the second field of the tuple as the timestamp
                     }
-                });
+                }).returns(Types.TUPLE(Types.STRING, Types.LONG));;
 
         //aggregate results
-        DataStream<String> unionTokens = tokens.union(lambdaTokens);
-        DataStream<String> aggregatedTokens = unionTokens.windowAll(TumblingProcessingTimeWindows.of(Time.milliseconds(10)))
+        DataStream<Tuple2<String,Long>> unionTokens = timedTokens.union(lambdaTokens);
+        DataStream<Tuple2<String, Long>> aggregatedTokens = unionTokens.windowAll(TumblingProcessingTimeWindows.of(Time.milliseconds(10)))
                 .process(new AggregatorProcessFunction())
-                .assignTimestampsAndWatermarks(new AscendingTimestampExtractor<String>() {
+                .assignTimestampsAndWatermarks(new AscendingTimestampExtractor<Tuple2<String,Long>>() {
                     @Override
-                    public long extractAscendingTimestamp(String element) {
-                        return System.currentTimeMillis();
+                    public long extractAscendingTimestamp(Tuple2<String,Long> element) {
+                        return System.currentTimeMillis(); // use the second field of the tuple as the timestamp
                     }
-                })
-                .map(token -> String.format("%s @ %d", token, System.currentTimeMillis())); // add timestamp to string
+                }).returns(Types.TUPLE(Types.STRING, Types.LONG));
+
+        DataStream<Tuple2<String, Long>> latencyTokens = aggregatedTokens
+                .map(tuple -> Tuple2.of(tuple.f0, System.currentTimeMillis()-tuple.f1))
+                .returns(Types.TUPLE(Types.STRING, Types.LONG));
+
 
         //add to sink
         FileSink sink= CustomedFileSink.getSink();
-        aggregatedTokens.sinkTo(sink);
+        latencyTokens.sinkTo(sink);
         env.execute("Flink Pipeline Tokenization");
     }
-
 
 }
