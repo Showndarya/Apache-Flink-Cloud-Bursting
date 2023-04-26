@@ -146,6 +146,7 @@ public class InvokeOperator extends ProcessAllWindowFunction<Tuple2<String,Long>
                 } else {
                     threshold = 400;
                 }
+//                threshold = (int) (inputRate * 0.4);
                 time = System.currentTimeMillis();
 //                System.out.println("input rate is " + inputRate);
 //                System.out.println("new batch size is " + threshold);
