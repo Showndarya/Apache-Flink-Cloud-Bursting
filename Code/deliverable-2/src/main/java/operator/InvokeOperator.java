@@ -43,10 +43,10 @@ public class InvokeOperator extends ProcessAllWindowFunction<String, String, Tim
 //        fileWriter.write('\n');
 //        fileWriter.flush();
 //        fileWriter.close();
-//        double totaltime = System.currentTimeMillis()-totalstart;
-//        fileWriter1.write((numProceeded/(totaltime/1000))+",");
-//        fileWriter1.flush();
-//        fileWriter1.close();
+        double totaltime = System.currentTimeMillis()-totalstart;
+        fileWriter1.write((numProceeded/(totaltime/1000))+",");
+        fileWriter1.flush();
+        fileWriter1.close();
     }
 
     /**
@@ -66,8 +66,8 @@ public class InvokeOperator extends ProcessAllWindowFunction<String, String, Tim
 
     private int threshold;
 
-//    private  final String latencyName;
-//    private  final String throughputName;
+    private   String latencyName;
+    private   String throughputName;
     /**
      * Todo find suitable implementation
      * How to create a list state
@@ -77,7 +77,7 @@ public class InvokeOperator extends ProcessAllWindowFunction<String, String, Tim
     private transient ListState<String> state;
     private List<String> bufferedElements;
 
-    private transient FileWriter fileWriter;
+//    private transient FileWriter fileWriter;
     private transient FileWriter fileWriter1;
 
     private double startTime;
@@ -92,26 +92,24 @@ public class InvokeOperator extends ProcessAllWindowFunction<String, String, Tim
     @Override
     public void open(Configuration parameters) throws Exception {
         super.open(parameters);
-//        System.out.println(this.latencyName);
-//        System.out.println(this.throughputName);
+        System.out.println(this.latencyName);
+        System.out.println(this.throughputName);
 //        fileWriter=new FileWriter(latencyName,true);
-//        fileWriter1 = new FileWriter(throughputName, true);
-//        totalstart = System.currentTimeMillis();
-//        numProceeded = 0;
+        fileWriter1 = new FileWriter(throughputName, true);
+        totalstart = System.currentTimeMillis();
+        numProceeded = 0;
         time = System.currentTimeMillis();
     }
 
     public InvokeOperator(int threshold, String latencyName, String throughputName) throws IOException {
         this.threshold = threshold;
 //        this.latencyName = latencyName;
-//        this.throughputName = throughputName;
+        this.throughputName = throughputName;
         this.bufferedElements = new ArrayList<>();
     }
 
     public InvokeOperator() throws IOException {
         this.threshold = 100;
-//        this.latencyName = latencyName;
-//        this.throughputName = throughputName;
         this.bufferedElements = new ArrayList<>();
     }
 
@@ -140,31 +138,31 @@ public class InvokeOperator extends ProcessAllWindowFunction<String, String, Tim
 
     @Override
     public void process(Context context, Iterable<String> elements, Collector<String> out) throws Exception {
-//        numProceeded++;
+        numProceeded++;
         for (String value: elements) {
-            if (System.currentTimeMillis() - time >= interval) {
-                String jobid = MetricUtilities.getjobid();
-                double inputRate = MetricUtilities.getInputRate(jobid,getRuntimeContext().getTaskName());
-                if (inputRate <= 21) {
-                    threshold = 1;
-                } else if (inputRate <= 33) {
-                    threshold = 2;
-                } else if (inputRate <= 41) {
-                    threshold = 3;
-                } else {
-                    threshold = 100;
-                }
-                time = System.currentTimeMillis();
-                System.out.println("input rate is " + inputRate);
-                System.out.println("new batch size is " + threshold);
-            }
+//            if (System.currentTimeMillis() - time >= interval) {
+//                String jobid = MetricUtilities.getjobid();
+//                double inputRate = MetricUtilities.getInputRate(jobid,getRuntimeContext().getTaskName());
+//                if (inputRate <= 21) {
+//                    threshold = 1;
+//                } else if (inputRate <= 33) {
+//                    threshold = 2;
+//                } else if (inputRate <= 41) {
+//                    threshold = 3;
+//                } else {
+//                    threshold = 100;
+//                }
+//                time = System.currentTimeMillis();
+//                System.out.println("input rate is " + inputRate);
+//                System.out.println("new batch size is " + threshold);
+//            }
 
             /**
              * add string to state
              */
-            //        if(bufferedElements.size()==0){
-            //            startTime=System.currentTimeMillis();
-            //        }
+                    if(bufferedElements.size()==0){
+                        startTime=System.currentTimeMillis();
+                    }
             bufferedElements.add(value);
             if (bufferedElements.size() >= threshold) {
                 String payload = getPayload(bufferedElements);
@@ -175,10 +173,10 @@ public class InvokeOperator extends ProcessAllWindowFunction<String, String, Tim
                 for (String i : strings) {
                     out.collect(i);
                 }
-                //            double latency = (System.currentTimeMillis()-startTime);
-                //            System.out.println(latency+"---------------------------------------------------------------------------------------");
-                //            fileWriter.write(latency+",");
-                //            fileWriter.flush();
+                            double latency = (System.currentTimeMillis()-startTime);
+                            System.out.println(latency+"---------------------------------------------------------------------------------------");
+//                            fileWriter.write(latency+",");
+//                            fileWriter.flush();
                 bufferedElements.clear();
             }
         }
@@ -218,9 +216,9 @@ public class InvokeOperator extends ProcessAllWindowFunction<String, String, Tim
     }
 
     public static void main(String[] args) throws Exception{
-        int[] arr = new int[]{4};
+        int[] arr = new int[]{20,30,40,50,60,70,80,90,100};
         for(int j:arr) {
-            for (int i = 0; i < 1; i++) {
+            for (int i = 0; i < 5; i++) {
                 // create a Flink execution environment
                 StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
                 env.setParallelism(1);
@@ -238,18 +236,19 @@ public class InvokeOperator extends ProcessAllWindowFunction<String, String, Tim
                         (EventDeserializer<String>) Event::toString,
                         BasicTypeInfo.STRING_TYPE_INFO));
 
-                DataStream<String> invoker = randomStrings.windowAll(TumblingProcessingTimeWindows.of(Time.milliseconds(10))).process(new InvokeOperator());
+//                DataStream<String> invoker = randomStrings.windowAll(TumblingProcessingTimeWindows.of(Time.milliseconds(10))).process(new InvokeOperator());
+                DataStream<String> invoker = randomStrings.windowAll(TumblingProcessingTimeWindows.of(Time.milliseconds(10))).process(new InvokeOperator(j,"python latency "+j+".csv","python throughput.csv"));
 
 //                invoker.print();
 
                 env.execute("Flink Pipeline Tokenization");
                 System.out.println("11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111");
-                TimeUnit.SECONDS.sleep(20);
+//                TimeUnit.SECONDS.sleep(10);
             }
-//            FileWriter fileWriter = new FileWriter("java throughput.csv", true);
-//            fileWriter.write('\n');
-//            fileWriter.flush();
-//            fileWriter.close();
+            FileWriter fileWriter = new FileWriter("python throughput.csv", true);
+            fileWriter.write('\n');
+            fileWriter.flush();
+            fileWriter.close();
         }
     }
 

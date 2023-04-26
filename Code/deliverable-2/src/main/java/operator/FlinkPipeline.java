@@ -27,7 +27,7 @@ public class FlinkPipeline {
         NexmarkConfiguration nexmarkConfiguration = new NexmarkConfiguration();
         nexmarkConfiguration.bidProportion = 46;
         GeneratorConfig generatorConfig = new GeneratorConfig(
-                nexmarkConfiguration, System.currentTimeMillis(), 1, 0, 1);
+                nexmarkConfiguration, System.currentTimeMillis(), 1, 1000, 1);
 
         // generate a stream of random strings
         DataStream<String> randomStrings = env.addSource(new NexmarkSourceFunction<>(

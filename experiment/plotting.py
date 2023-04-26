@@ -1,28 +1,89 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-arr=[1,5,10,15,20]
+arr=[1,2,3,4,5,6,7,8,9,10]
+data=[]
 for i in arr:
-    df = pd.read_csv('../java latency '+str(i)+'.csv', header=None)
+    df = pd.read_csv('java latency '+str(i)+'.csv', header=None)
+    df=df.drop(df.columns[-1],axis=1)
     df = df.transpose()
     df['avg'] = df.mean(axis=1)
-    print(df)
-    ax=df['avg'].plot(kind='line', legend=False)
-    ax.set_title('Latency vs batch of '+str(i))
-    ax.set_ylabel('Latency (ms)')
-    ax.set_xlabel('Num of batches')
 
-    plt.xticks(range(0, len(df.index), int(len(df.index)/10)))
-    plt.show()
+    data.append(df['avg'])
+
+plt.boxplot(data)
+plt.xticks(range(1,11), arr)
+
+# set the title and labels
+plt.title('Box Plot for different batches java')
+plt.xlabel('Size of Batch')
+plt.ylabel('Latency (ms)')
+
+# show the plot
+plt.show()
+
+avgdata=[d.mean() for d in data]
+print(avgdata)
+plt.plot(arr,avgdata)
+# plt.xticks(arr)
+plt.title('Average Latency for different batch size java')
+plt.xlabel('Size of Batch')
+plt.ylabel('Latency (ms)')
+plt.show()
 
 
-    df1 = pd.read_csv('../java throughput '+str(i)+'.csv', header=None)
-    df1 = df1.transpose()
-    df1['avg'] = df1.mean(axis=1)
-    print(df1)
-    ax=df1['avg'].plot(kind='line', legend=False)
-    ax.set_title('Throughput vs batch of '+str(i))
-    ax.set_ylabel('Throughput (Events / second)')
-    ax.set_xlabel('Num of batches')
+df1 = pd.read_csv('java throughput.csv', header=None)
+df1=df1.drop(5,axis=1)
+df1['avg'] = df1.mean(axis=1)
+print(df1)
+# ax=df1['avg'].plot(x=range(1,11),y=df1['avg'],kind='line', legend=False)
+plt.plot(range(1,11),df1['avg'])
+plt.title('Throughput vs batch')
+plt.ylabel('Throughput (Events / second)')
+plt.xlabel('Num of batches')
+plt.xticks([1,2,3,4,5,6,7,8,9,10])
 
-    plt.xticks(range(0, len(df.index), int(len(df.index)/10)))
-    plt.show()
+
+plt.show()
+
+
+# arr=[1,2,3,4,5,6,7,8,9,10,20,30,40,50,60,70,80,90,100]
+# data = []
+# for i in arr:
+#     df = pd.read_csv('../python latency '+str(i)+'.csv', header=None,na_values='')
+#     df=df.drop(df.columns[-1],axis=1)
+#     df = df.transpose()
+#     df['avg'] = df.mean(axis=1)
+#     data.append(df['avg'])
+#
+# # print(data)
+# plt.boxplot(data)
+# avgdata=[d.mean() for d in data]
+# plt.xticks(range(1,20), arr)
+#
+# # set the title and labels
+# plt.title('Box Plot for different batches python')
+# plt.xlabel('Size of Batch')
+# plt.ylabel('Latency (ms)')
+#
+# # show the plot
+# plt.show()
+# print(avgdata)
+# plt.plot(arr,avgdata)
+# # plt.xticks(arr)
+# plt.title('Average Latency for different batch size python')
+# plt.xlabel('Size of Batch')
+# plt.ylabel('Latency (ms)')
+# plt.show()
+#
+# df1 = pd.read_csv('../python throughput.csv', header=None)
+# df1=df1.drop(df1.columns[-1],axis=1)
+# df1['avg'] = df1.mean(axis=1)
+# # ax=df1['avg'].plot(x=range(1,11),y=df1['avg'],kind='line', legend=False)
+# plt.plot(arr,df1['avg'])
+# plt.title('Throughput vs batch python')
+# plt.ylabel('Throughput (Events / second)')
+# plt.xlabel('Num of batches')
+#
+#
+#
+# plt.show()
