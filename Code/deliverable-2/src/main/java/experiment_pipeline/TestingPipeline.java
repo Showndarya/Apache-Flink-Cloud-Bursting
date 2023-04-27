@@ -86,8 +86,8 @@ public class TestingPipeline extends ProcessFunction<String,String> implements C
     @Override
     public void open(Configuration parameters) throws Exception {
         super.open(parameters);
-        System.out.println(this.latencyName);
-        System.out.println(this.throughputName);
+//        System.out.println(this.latencyName);
+//        System.out.println(this.throughputName);
         fileWriter=new FileWriter(latencyName,true);
         fileWriter1 = new FileWriter(throughputName, true);
         totalstart = System.currentTimeMillis();
@@ -199,7 +199,7 @@ public class TestingPipeline extends ProcessFunction<String,String> implements C
     private static List<String> getResultFromJsonJava(String jsonString){
 //        System.out.println(jsonString);
         Gson gson = new Gson();
-        System.out.println(jsonString);
+//        System.out.println(jsonString);
         jsonString=jsonString.replace("\"[","[");
         jsonString=jsonString.replace("]\"","]");
 
@@ -210,16 +210,16 @@ public class TestingPipeline extends ProcessFunction<String,String> implements C
                 result.add(i.toString());
             }
         }
-        System.out.println(tokenObject);
+//        System.out.println(tokenObject);
 //        System.out.println(tokenObject);
 //        System.out.println(result);
         return result;
     }
 
     public static void main(String[] args) throws Exception{
-        int[] arr = new int[]{20,30,40,50,60,70,80,90,100,200,300,400,500};
+        int[] arr = new int[]{10,20,40,80,160,320,640,1280};
         for(int j:arr) {
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < 10; i++) {
                 // create a Flink execution environment
                 StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
                 env.setParallelism(1);
@@ -229,7 +229,7 @@ public class TestingPipeline extends ProcessFunction<String,String> implements C
                 NexmarkConfiguration nexmarkConfiguration = new NexmarkConfiguration();
                 nexmarkConfiguration.bidProportion = 46;
                 GeneratorConfig generatorConfig = new GeneratorConfig(
-                        nexmarkConfiguration, System.currentTimeMillis(), 1, 1000, 1);
+                        nexmarkConfiguration, System.currentTimeMillis(), 1, 1280, 1);
 
                 // generate a stream of random strings
                 DataStream<String> randomStrings = env.addSource(new NexmarkSourceFunction<>(
@@ -245,7 +245,7 @@ public class TestingPipeline extends ProcessFunction<String,String> implements C
 
                 env.execute("Flink Pipeline Tokenization");
                 System.out.println("11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111");
-                TimeUnit.SECONDS.sleep(5);
+//                TimeUnit.SECONDS.sleep(5);
             }
             FileWriter fileWriter = new FileWriter("java throughput.csv", true);
             fileWriter.write('\n');
