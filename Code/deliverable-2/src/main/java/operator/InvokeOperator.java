@@ -207,6 +207,7 @@ public class InvokeOperator extends ProcessAllWindowFunction<Tuple2<String,Long>
                 result.add(i.toString());
             }
         }
+
 //        System.out.println(result);
         return result;
     }
