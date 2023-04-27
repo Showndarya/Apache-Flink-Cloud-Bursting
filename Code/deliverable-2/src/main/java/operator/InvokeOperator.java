@@ -198,14 +198,16 @@ public class InvokeOperator extends ProcessAllWindowFunction<Tuple2<String,Long>
         jsonString=jsonString.replace("\"[","[");
         jsonString=jsonString.replace("]\"","]");
 
-        List<List<String>> tokenObject = gson.fromJson(jsonString, List.class);
+        List tokenObject = gson.fromJson(jsonString, List.class);
 
 //        System.out.println(tokenObject);
         List<String> result = new ArrayList<>();
-        for(List<String> i:tokenObject){
-            result.addAll(i);
+        for(Object i:tokenObject){
+            if(i!=null){
+                result.add(i.toString());
+            }
         }
-        result.remove("");
+
 //        System.out.println(result);
         return result;
     }
