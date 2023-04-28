@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import com.google.gson.Gson;
 
@@ -41,17 +42,17 @@ public class App implements RequestHandler<APIGatewayProxyRequestEvent, APIGatew
             isWarmed = true;
         }
 
-        List<String> bodyList = Arrays.asList(input.getBody().split(","));
-        List<String[]> tokensBatch = new ArrayList<>();
+        String json =input.getBody();
+        List<String> data = gson.fromJson(json, ArrayList.class);
 
-        for(String str : bodyList) {
-            System.out.println(str);
-            String value = input.getBody().replaceAll("\\W"," ");
-            String[] tokens = value.split("\\s+");
-            tokensBatch.add(tokens);
+        List<String> responses = new ArrayList<>();
+        Pattern pattern = Pattern.compile("\\W");
+        for (String text : data) {
+            String[] values = pattern.split(text);
+            responses.addAll(Arrays.asList(values));
         }
 
-        String output = String.format("\"%s\"", gson.toJson(tokensBatch));
+        String output = String.format("\"%s\"", responses);
         return response
                 .withStatusCode(200)
                 .withBody(output);
