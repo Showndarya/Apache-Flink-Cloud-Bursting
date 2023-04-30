@@ -1,19 +1,19 @@
-<h2 style="text-align: center;"> Addressing transient workload spikes with Cloud bursting in Apache Flink</h2>
+<h2 style="text-align: center;"> Addressing transient workload spikes with Cloud Bursting in Apache Flink</h2>
 <hr />
 
 **Problem statement:** 
-  - **Problem**:  This project aims to address is to provide a solution for handling sudden spikes in workload in Apache Flink applications. This is an important problem because Apache Flink is a distributed stream processing framework that is designed to handle large amounts of data in real time. However, when the input rate exceeds the processing capacity, the system can become overwhelmed, leading to increased latency, decreased performance, and even failures.
-  - **Technique**:  The cloud bursting technique is an alternative to back-pressure, which is a mechanism that slows down the input rate when the system is overwhelmed. Instead, cloud bursting allows the excess workload to be offloaded to a cloud provider, such as AWS, where it can be processed in parallel. This can help to ensure that the system continues to operate at a high level of performance, even when there is a sudden spike in workload. 
+  - **Problem**:  This project aims to provide a solution for handling sudden spikes in workload in Apache Flink applications. This is an important problem because Apache Flink is a distributed stream processing framework that is designed to handle large amounts of data in real-time. However, when the input rate exceeds the processing capacity, the system becomes overwhelmed, leading to increased latency, decreased performance, or even failures.
+  - **Technique**:  The cloud bursting technique is an alternative to back-pressure, which is a mechanism that slows down the input rate when the system is overwhelmed. Instead, Cloud Bursting allows the excess workload to be offloaded to a cloud provider, such as AWS, where it can be processed in parallel. This can help ensure that the system continues to operate at a high level of performance, even when there is a sudden spike in workload. 
 
 **Source**:
 
-Nexmark is a benchmark suite for queries over continuous data streams. This project is inspired by the [NEXMark research paper](https://web.archive.org/web/20100620010601/http://datalab.cs.pdx.edu/niagaraST/NEXMark/) and [Apache Beam Nexmark](https://beam.apache.org/documentation/sdks/java/testing/nexmark/).
+Nexmark is a benchmarking suite for queries over continuous data streams. This project is inspired by the [NEXMark research paper](https://web.archive.org/web/20100620010601/http://datalab.cs.pdx.edu/niagaraST/NEXMark/) and [Apache Beam Nexmark](https://beam.apache.org/documentation/sdks/java/testing/nexmark/).
 
 These are multiple queries over a three entities model representing on online auction system:
 
-Person represents a person submitting an item for auction and/or making a bid on an auction.
-Auction represents an item under auction.
-Bid represents a bid for an item under auction.
+_Person_ represents a person submitting an item for auction and/or making a bid on an auction.
+_Auction_ represents an item under auction.
+_Bid_ represents a bid for an item under auction.
 
 **Basic Architecture**:
 
