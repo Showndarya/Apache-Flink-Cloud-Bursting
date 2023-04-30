@@ -128,7 +128,7 @@ public class InvokeOperator extends ProcessAllWindowFunction<Tuple2<String,Long>
             if (bufferedElements.size() >= threshold) {
                 String payload = getPayload(bufferedElements);
                 String jsonResult = LambdaInvokerUsingURLPayload.invoke_lambda(payload);
-                List<String> strings = getResultFromJsonPython(jsonResult);
+                List<String> strings = getResultFromJsonJava(jsonResult);
                 for (String i : strings) {
                     out.collect(Tuple2.of(i,value.f1));
                 }
