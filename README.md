@@ -19,6 +19,10 @@ These are multiple queries over a three entities model representing on online au
 
 ![Architecture](assets/Architecture.png "Architecture")
 
+**Demo**: 
+
+Please view the recording [here](https://drive.google.com/file/d/1sOeJe6R1TDvADqdMgU50-fyc1iHVGJ8E/view?usp=sharing).
+
 **Run instructions**:
 
 - Environment -
