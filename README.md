@@ -1,4 +1,4 @@
-<h4 style="text-align: center;"> Addressing transient workload spikes with Cloud bursting in Apache Flink</h4>
+<h2 style="text-align: center;"> Addressing transient workload spikes with Cloud bursting in Apache Flink</h2>
 <hr />
 
 **Problem statement:** 
@@ -24,11 +24,11 @@ Bid represents a bid for an item under auction.
 - Environment -
     - Java 8 
     - Flink version - 1.16.0
-    - Intellij
+    - IntelliJ
 
 - Using Intellij - 
-    1. Build your Maven project using the command `mvn clean package`, which will generate a JAR file for the Flink pipeline, or create a maven run configuration in `Intellij` to run the command `clean package`
-    2. Install all dependencies using maven.
+    1. Build your Maven project using the command `mvn clean package`, which will generate a JAR file for the Flink pipeline, or create a Maven run configuration in `Intellij` to run the command `clean package`
+    2. Install all dependencies using Maven.
     3. Create another application run configuration with `main` class as `operator.FlinkPipeline`. Select the `Add dependencies with 'provided' scope to classpath` option. Set the working directory as `team-6/Code/deliverable-2`.  
     4. Build the project using the application run configuration to generate the jar files in the `target` folder.
 
@@ -83,18 +83,36 @@ Although the lambda functions are already deployed with an exposed API gateway, 
 
 - **Measurements**:
     - **Parallelism**:
-        1. The input rate is set to 500 events/sec and 100000 events are generated from source.
-        2. The job paralellism is set to 1,2,4,8 and the completion is measured.
+        1. The input rate is set to 500 events/sec and 100000 events are generated from the source.
+        2. The job parallelism is set to 1,2,4,8 and the completion is measured.
+        3. Configuration values kept constant:
+            - Input Rate = 1000 events/s 
+            - Duration of Experiment = 5mins 
+            - Metric Call Latency = 800 ms 
+            - Max Records Sent = 100000 
 
     - **Backpressure duration**: 
         1. The duration of 5 mins.
         2. Input rates - 100, 250, 500, 750, 1000events/sec.
-        3. Uncontrolled number of events are sent.
+        3. Configuration values kept constant:
+            - Duration of Experiment = 5mins 
+            - Parallelism = 1 
+            - Max Records Sent = unlimited,  
+            - Batch size change-every 8 secs 
+            - Metric Call Latency = 1000 ms
 
     - **Metric calculation interval**: 
-        1. The input rate is set to 500 events/sec and 100000 events are generated from source.
-        2. Metric calculation delay values tested - 450 ms, 750ms, 1000ms, 1200ms, 1350ms.
+        1. The input rate is set to 500 events/sec and 100000 events are generated from the source.
+        2. Metric calculation delay values tested - 700ms, 800ms, 1000ms, 1100ms, 120ms.
         3. The completion time and the accumulated backpressure is tested
+        4. We found **800ms** to be the best with our experiments.
+        5. Configuration values kept constant:
+            - Input Rate = 1000 events/s  
+            - Duration of Experiment = 5mins 
+            - Parallelism = 1 
+            - Max Records Sent = unlimited
+            - Batch size change-every 8 secs
+
 
     - **Lambda**: 
         1. The pipeline is run from the source to the invoker operator, removing all the other operators.
@@ -104,3 +122,73 @@ Although the lambda functions are already deployed with an exposed API gateway, 
         3. 5 experiments are run on each batch size
         4. Latency is measured for each batch
     and throughput is measured for all the data.
+
+    - **Latency**:
+        1. Add the current timestamp when the event enters the pipeline. Before writing to sink - subtract the current timestamp with a timestamp in the event to get the latency for that record.
+        2. Performed on all 3 pipelines - vanilla, modified pipeline (without lambda), proposed solution
+        3. Input rates - 100, 250,500,750,1000,1250,1500 - tested for 5 minutes
+        4. 3 experiments are run on each input rate.
+        5. For the proposed solution, configuration values:
+            - MEASURE_INTERVAL_MS = 800ms
+            - INPUT_THRESHOLD = 500
+            - BUSY_TIME_THRESHOLD = 0.06
+
+**Experiments Result Plots**:
+<table>
+   <tr>
+        <td> <img src="assets/Latency3Pipelines.png" alt="Latency3Pipelines" ></td>
+        <td> Latency plot for all 3 pipelines [1]</td>
+   </tr> 
+   <tr>
+        <td><img src="assets/LatencyProposedSolution.png" alt="LatencyProposedSolution"></td>
+        <td> Latency plot scaled just for the proposed solution [1]</td>
+   </tr>
+   <tr>
+        <td><img src="assets/Backpressure3Pipelines.png" alt="Backpressure3Pipelines"></td>
+        <td> Plot to measure backpressure accumulation on various input rates for all 3 pipelines. The proposed solution self-rectifies backpressure encountered in the subsequent interval cycles [2]</td>
+  </tr>
+  <tr>
+        <td><img src="assets/MetricDelay.png" alt="MetricDelay"></td>
+        <td> Plot to measure metric delay interval vs the latency for the proposed solution [2]</td>
+  </tr>
+  <tr>
+        <td><img src="assets/Parallelism.png" alt="Parallelism"></td>
+        <td> Plot to measure pipeline parallelism vs the time to pipeline completion for the proposed solution [2]</td>
+  </tr>
+  <tr>
+        <td><img src="assets/JavalatencyBox.png" alt="JavalatencyBox"></td>
+        <td> Plot to measure the time taken by the AWS Lambda function written in Java to process events of different batch sizes as a box plot [3]</td>
+  </tr>
+  <tr>
+        <td><img src="assets/JavalatencyLine.png" alt="JavalatencyLine"></td>
+        <td> Plot to measure the average time taken by the AWS Lambda function written in Java to process events of different batch sizes as a box plot [3]</td>
+  </tr>
+  <tr>
+        <td><img src="assets/PythonlatencyBox.png" alt="PythonlatencyBox"></td>
+        <td> Plot to measure the time taken by the AWS Lambda function written in Python to process events of different batch sizes as a box plot [4]</td>
+  </tr>
+  <tr>
+        <td><img src="assets/PythonlatencyLine.png" alt="PythonlatencyLine"></td>
+        <td> Plot to measure the average time taken by the AWS Lambda function written in Python to process events of different batch sizes as a box plot [4]</td>
+  </tr>
+  <tr>
+        <td><img src="assets/JavaThroughput.png" alt="JavaThroughput"></td>
+        <td> Plot to measure the average throughput of the AWS Lambda function written in Java to process events of different batch sizes as a box plot [3]</td>
+  </tr>
+  <tr>
+        <td><img src="assets/PythonThroughput.png" alt="PythonlatencyLine"></td>
+        <td> Plot to measure the average throughput of the AWS Lambda function written in Python to process events of different batch sizes as a box plot [4]</td>
+  </tr>
+</table>
+
+- [1] Refer to `experiments/latency` for sample data collection files. For complete data collected during latency experiments, go [here](https://drive.google.com/drive/folders/1r1DIEufWfF7mCvdcldEuDxCuXZn6JSNQ?usp=share_link)
+- [2] Refer to `experiments/metricdelay-backpressure-parallelism` for sample data collection files.
+- [3] Refer to `experiments/invoker/java` for sample data collection files.
+- [4] Refer to `experiments/invoker/python` for sample data collection files.
+- Refer to `assets/` for image files of all the plots for a closer view.
+
+**Future work**:
+- Handling stateful operations/operators.
+- Security in AWS Lambda
+- Fault tolerance - Currently project relies on Flink and AWS out-of-the-box fault tolerance, but the plan is to incorporate systems like Kafka in the pipeline to ensure no packets are lost between Flink and AWS Lambda.
+
