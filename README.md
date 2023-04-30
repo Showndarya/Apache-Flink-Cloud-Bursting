@@ -144,7 +144,7 @@ Although the lambda functions are already deployed with an exposed API gateway, 
         <td> Latency plot scaled just for the proposed solution [1]</td>
    </tr>
    <tr>
-        <td><img src="assets/Backpressure3Pipelines.png" alt="Backpressure3Pipelines"></td>
+        <td><img src="assets/BackPressure3Pipelines.png" alt="BackPressure3Pipelines"></td>
         <td> Plot to measure backpressure accumulation on various input rates for all 3 pipelines. The proposed solution self-rectifies backpressure encountered in the subsequent interval cycles [2]</td>
   </tr>
   <tr>
@@ -156,19 +156,19 @@ Although the lambda functions are already deployed with an exposed API gateway, 
         <td> Plot to measure pipeline parallelism vs the time to pipeline completion for the proposed solution [2]</td>
   </tr>
   <tr>
-        <td><img src="assets/JavalatencyBox.png" alt="JavalatencyBox"></td>
+        <td><img src="assets/JavaLatencyBox.png" alt="JavaLatencyBox"></td>
         <td> Plot to measure the time taken by the AWS Lambda function written in Java to process events of different batch sizes as a box plot [3]</td>
   </tr>
   <tr>
-        <td><img src="assets/JavalatencyLine.png" alt="JavalatencyLine"></td>
+        <td><img src="assets/JavaLatencyLine.png" alt="JavaLatencyLine"></td>
         <td> Plot to measure the average time taken by the AWS Lambda function written in Java to process events of different batch sizes as a box plot [3]</td>
   </tr>
   <tr>
-        <td><img src="assets/PythonlatencyBox.png" alt="PythonlatencyBox"></td>
+        <td><img src="assets/PythonLatencyBox.png" alt="PythonLatencyBox"></td>
         <td> Plot to measure the time taken by the AWS Lambda function written in Python to process events of different batch sizes as a box plot [4]</td>
   </tr>
   <tr>
-        <td><img src="assets/PythonlatencyLine.png" alt="PythonlatencyLine"></td>
+        <td><img src="assets/PythonLatencyLine.png" alt="PythonLatencyLine"></td>
         <td> Plot to measure the average time taken by the AWS Lambda function written in Python to process events of different batch sizes as a box plot [4]</td>
   </tr>
   <tr>
