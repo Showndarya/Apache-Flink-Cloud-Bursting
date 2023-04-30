@@ -11,9 +11,9 @@ Nexmark is a benchmarking suite for queries over continuous data streams. This p
 
 These are multiple queries over a three entities model representing on online auction system:
 
-_Person_ represents a person submitting an item for auction and/or making a bid on an auction.
-_Auction_ represents an item under auction.
-_Bid_ represents a bid for an item under auction.
+- _Person_ represents a person submitting an item for auction and/or making a bid on an auction.
+- _Auction_ represents an item under auction.
+- _Bid_ represents a bid for an item under auction.
 
 **Basic Architecture**:
 
