@@ -44,6 +44,13 @@ Bid represents a bid for an item under auction.
     2. Go to http://localhost:8081 in your browser
     3. Upload the jar file to the Flink web UI under the `submit a job` tab
 
+- To switch between Java and Python AWS Lambda Functions - 
+    1. In the file `Code/deliverable-2/src/main/java/lambda/LambdaInvokerUsingURLPayload.java`, update `line:18` with `configs/JavaConfig.json` for invoking AWS Lambda written in Java or `configs/PythonConfig.json` for invoking AWS Lambda written in Java.
+    2. In the file `Code/deliverable-2/src/main/java/operator/InvokeOperator.java`, Change `line:131` to `getResultFromJsonPython` while using `configs/PythonConfig.json` or to `getResultFromJsonJava` while using `configs/JavaConfig.json`.
+
+- To test for input rates greater than the experiments documented - 
+    1. In the file `Code/deliverable-2/src/main/java/operator/InvokeOperator.java`, comment `line:110` to `line:119` and uncomment line `line:120` to use a standard input threshhold of `0.4` in the logic.
+
 **Source Configurations**:
 
 To change configurations at the source, navigate to the file `NexmarkConfiguration.java` under `team-6/Code/deliverable-2`.
@@ -191,4 +198,3 @@ Although the lambda functions are already deployed with an exposed API gateway, 
 - Handling stateful operations/operators.
 - Security in AWS Lambda
 - Fault tolerance - Currently project relies on Flink and AWS out-of-the-box fault tolerance, but the plan is to incorporate systems like Kafka in the pipeline to ensure no packets are lost between Flink and AWS Lambda.
-

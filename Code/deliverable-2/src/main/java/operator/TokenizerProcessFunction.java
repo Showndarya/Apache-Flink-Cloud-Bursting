@@ -19,8 +19,8 @@ public class TokenizerProcessFunction extends ProcessAllWindowFunction<Tuple3<St
                 for (String token : tokens) {
                     out.collect(Tuple2.of(token,element.f1)); // emit each token to downstream operators
                 }
+
                 Thread.sleep(1000);
-//                System.out.println("Process Function Operator tokens" + Arrays.toString(tokens));
        }
     }
 }

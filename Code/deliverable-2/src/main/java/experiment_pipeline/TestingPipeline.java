@@ -27,8 +27,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class TestingPipeline extends ProcessFunction<String,String> implements CheckpointedFunction {
-
-
     @Override
     public void close() throws Exception {
         super.close();

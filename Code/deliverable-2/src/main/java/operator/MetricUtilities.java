@@ -64,7 +64,6 @@ public class MetricUtilities {
         }
 
         url = new URL("http://localhost:8081/jobs/" + jobID + "/vertices/" + vertexId + "/metrics/" + "?get=0.numRecordsIn");
-//        System.out.println("metrics url: http://localhost:8081/jobs/" + jobID + "/vertices/" + vertexId + "/metrics/");
         con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("GET");
 

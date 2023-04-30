@@ -9,7 +9,6 @@ import java.io.File;
 
 
 public class CustomedFileSink {
-
     public static FileSink getSink(){
         /**
          * get home directory
@@ -22,8 +21,6 @@ public class CustomedFileSink {
         dir=dir.replaceAll("[\\/\\\\]", "\\"+ File.separator);
         System.out.println(dir);
 
-
-
         final FileSink<String> sink = FileSink
                 .forRowFormat(new Path(dir), new SimpleStringEncoder<String>("UTF-8"))
                 .withOutputFileConfig(
@@ -31,9 +28,7 @@ public class CustomedFileSink {
                                 .withPartSuffix(".txt")
                                 .build()
                 )
-
                 .build();
-
 
         return sink;
     }
