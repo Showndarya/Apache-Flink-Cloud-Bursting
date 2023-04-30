@@ -38,7 +38,6 @@ public class LambdaInvokerUsingURLPayload {
         out.write(payload.getBytes(StandardCharsets.UTF_8));
         out.flush();
         out.close();
-        int responseCode = con.getResponseCode();
         InputStream inputStream2 = con.getInputStream();
         BufferedReader in = new BufferedReader(new InputStreamReader(inputStream2, StandardCharsets.UTF_8));
 

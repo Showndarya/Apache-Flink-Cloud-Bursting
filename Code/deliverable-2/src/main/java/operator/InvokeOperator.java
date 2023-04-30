@@ -32,13 +32,6 @@ public class InvokeOperator extends ProcessAllWindowFunction<Tuple2<String,Long>
     @Override
     public void close() throws Exception {
         super.close();
-//        fileWriter.write('\n');
-//        fileWriter.flush();
-//        fileWriter.close();
-//        double totaltime = System.currentTimeMillis()-totalstart;
-//        fileWriter1.write((numProceeded/(totaltime/1000))+",");
-//        fileWriter1.flush();
-//        fileWriter1.close();
     }
 
     /**
@@ -57,9 +50,6 @@ public class InvokeOperator extends ProcessAllWindowFunction<Tuple2<String,Long>
      */
 
     private int threshold;
-
-//    private  final String latencyName;
-//    private  final String throughputName;
     /**
      * Todo find suitable implementation
      * How to create a list state
@@ -69,14 +59,6 @@ public class InvokeOperator extends ProcessAllWindowFunction<Tuple2<String,Long>
     private transient ListState<String> state;
     private List<String> bufferedElements;
 
-    private transient FileWriter fileWriter;
-    private transient FileWriter fileWriter1;
-
-    private double startTime;
-    private double totalstart;
-
-    private int numProceeded;
-
     private double time;
 
     private final int interval = 8000;
@@ -84,26 +66,16 @@ public class InvokeOperator extends ProcessAllWindowFunction<Tuple2<String,Long>
     @Override
     public void open(Configuration parameters) throws Exception {
         super.open(parameters);
-//        System.out.println(this.latencyName);
-//        System.out.println(this.throughputName);
-//        fileWriter=new FileWriter(latencyName,true);
-//        fileWriter1 = new FileWriter(throughputName, true);
-//        totalstart = System.currentTimeMillis();
-//        numProceeded = 0;
         time = System.currentTimeMillis();
     }
 
     public InvokeOperator(int threshold, String latencyName, String throughputName) throws IOException {
         this.threshold = threshold;
-//        this.latencyName = latencyName;
-//        this.throughputName = throughputName;
         this.bufferedElements = new ArrayList<>();
     }
 
     public InvokeOperator() throws IOException {
         this.threshold = 100;
-//        this.latencyName = latencyName;
-//        this.throughputName = throughputName;
         this.bufferedElements = new ArrayList<>();
     }
 
@@ -132,7 +104,6 @@ public class InvokeOperator extends ProcessAllWindowFunction<Tuple2<String,Long>
 
     @Override
     public void process(Context context, Iterable<Tuple2<String,Long>> elements, Collector<Tuple2<String,Long>> out) throws Exception {
-//        numProceeded++;
         for (Tuple2<String,Long> value: elements) {
             if (System.currentTimeMillis() - time >= interval) {
                 String jobid = MetricUtilities.getjobid();
@@ -148,30 +119,20 @@ public class InvokeOperator extends ProcessAllWindowFunction<Tuple2<String,Long>
                 }
 //                threshold = (int) (inputRate * 0.4);
                 time = System.currentTimeMillis();
-//                System.out.println("input rate is " + inputRate);
-//                System.out.println("new batch size is " + threshold);
             }
 
             /**
              * add string to state
              */
-            //        if(bufferedElements.size()==0){
-            //            startTime=System.currentTimeMillis();
-            //        }
             bufferedElements.add(value.f0);
             if (bufferedElements.size() >= threshold) {
                 String payload = getPayload(bufferedElements);
                 String jsonResult = LambdaInvokerUsingURLPayload.invoke_lambda(payload);
-
-
                 List<String> strings = getResultFromJsonPython(jsonResult);
                 for (String i : strings) {
                     out.collect(Tuple2.of(i,value.f1));
                 }
-                //            double latency = (System.currentTimeMillis()-startTime);
-                //            System.out.println(latency+"---------------------------------------------------------------------------------------");
-                //            fileWriter.write(latency+",");
-                //            fileWriter.flush();
+
                 bufferedElements.clear();
             }
         }
@@ -192,23 +153,18 @@ public class InvokeOperator extends ProcessAllWindowFunction<Tuple2<String,Long>
     }
 
     private static List<String> getResultFromJsonJava(String jsonString){
-//        System.out.println(jsonString);
         Gson gson = new Gson();
 
         jsonString=jsonString.replace("\"[","[");
         jsonString=jsonString.replace("]\"","]");
 
         List tokenObject = gson.fromJson(jsonString, List.class);
-
-//        System.out.println(tokenObject);
         List<String> result = new ArrayList<>();
         for(Object i:tokenObject){
             if(i!=null){
                 result.add(i.toString());
             }
         }
-
-//        System.out.println(result);
         return result;
     }
 
@@ -233,18 +189,10 @@ public class InvokeOperator extends ProcessAllWindowFunction<Tuple2<String,Long>
                         (EventDeserializer<String>) Event::toString,
                         BasicTypeInfo.STRING_TYPE_INFO));
 
-//                DataStream<String> invoker = randomStrings.windowAll(TumblingProcessingTimeWindows.of(Time.milliseconds(10))).process(new InvokeOperator());
-
-//                invoker.print();
-
                 env.execute("Flink Pipeline Tokenization");
                 System.out.println("11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111");
                 TimeUnit.SECONDS.sleep(20);
             }
-//            FileWriter fileWriter = new FileWriter("java throughput.csv", true);
-//            fileWriter.write('\n');
-//            fileWriter.flush();
-//            fileWriter.close();
         }
     }
 
