@@ -152,7 +152,11 @@ Although the lambda functions are already deployed with an exposed API gateway, 
    </tr> 
    <tr>
         <td><img src="assets/LatencyProposedSolution.png" alt="LatencyProposedSolution"></td>
-        <td> Latency plot scaled just for the proposed solution [1]</td>
+        <td> Latency plot scaled just for the proposed solution (Python used in Lambda) [1]</td>
+   </tr>
+   <tr>
+        <td><img src="assets/JavaLatency.png" alt="JavaLatency"></td>
+        <td> Latency plot for using Java in the Lambda Function</td>
    </tr>
    <tr>
         <td><img src="assets/BackPressure3Pipelines.png" alt="BackPressure3Pipelines"></td>
