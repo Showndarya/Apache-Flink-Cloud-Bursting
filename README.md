@@ -1,5 +1,4 @@
 <h2 style="text-align: center;"> Addressing transient workload spikes with Cloud Bursting in Apache Flink</h2>
-<hr />
 
 **Problem statement:** 
   - **Problem**:  This project aims to provide a solution for handling sudden spikes in workload in Apache Flink applications. This is an important problem because Apache Flink is a distributed stream processing framework that is designed to handle large amounts of data in real-time. However, when the input rate exceeds the processing capacity, the system becomes overwhelmed, leading to increased latency, decreased performance, or even failures.
@@ -151,12 +150,12 @@ Although the lambda functions are already deployed with an exposed API gateway, 
         <td> Latency plot for all 3 pipelines [1]</td>
    </tr> 
    <tr>
-        <td><img src="assets/LatencyProposedSolution.png" alt="LatencyProposedSolution"></td>
-        <td> Latency plot scaled just for the proposed solution (Python used in Lambda) [1]</td>
+        <td><img src="assets/LatencyProposedSolutionPython.png" alt="LatencyProposedSolutionPython"></td>
+        <td> Latency plot scaled just for the proposed solution (AWS Lambda written in Python) [1]</td>
    </tr>
    <tr>
-        <td><img src="assets/JavaLatency.png" alt="JavaLatency"></td>
-        <td> Latency plot for using Java in the Lambda Function</td>
+        <td><img src="assets/LatencyProposedSolutionJava.png" alt="LatencyProposedSolutionJava"></td>
+        <td> Latency plot scaled just for the proposed solution (AWS Lambda written in Java) [1]</td>
    </tr>
    <tr>
         <td><img src="assets/BackPressure3Pipelines.png" alt="BackPressure3Pipelines"></td>
