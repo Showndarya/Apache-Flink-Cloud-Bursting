@@ -2,6 +2,7 @@ package operator;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import entity.URLWrapper;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -12,7 +13,7 @@ import java.net.URL;
 public class MetricUtilities {
 
     public static String getjobid() throws Exception {
-        URL url = new URL("http://localhost:8081/jobs");
+        URLWrapper url = new URLWrapper(new URL("http://localhost:8081/jobs"));
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("GET");
         BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
@@ -39,7 +40,7 @@ public class MetricUtilities {
     }
 
     public static Double getInputRate(String jobID, String taskName) throws Exception {
-        URL url = new URL("http://localhost:8081/jobs/" + jobID);
+        URLWrapper url = new URLWrapper(new URL("http://localhost:8081/jobs/" + jobID));
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("GET");
 
@@ -63,7 +64,7 @@ public class MetricUtilities {
             }
         }
 
-        url = new URL("http://localhost:8081/jobs/" + jobID + "/vertices/" + vertexId + "/metrics/" + "?get=0.numRecordsIn");
+        url = new URLWrapper(new URL("http://localhost:8081/jobs/" + jobID + "/vertices/" + vertexId + "/metrics/" + "?get=0.numRecordsIn"));
         con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("GET");
 
@@ -89,7 +90,7 @@ public class MetricUtilities {
     }
 
     public static Long getBusyTime(String jobID, String taskName) throws Exception {
-        URL url = new URL("http://localhost:8081/jobs/" + jobID);
+        URLWrapper url = new URLWrapper(new URL("http://localhost:8081/jobs/" + jobID));
         JsonNode jsonNode = OpenUrlConnection(url);
         String inputLine;
 
@@ -102,7 +103,7 @@ public class MetricUtilities {
             }
         }
 
-        url = new URL("http://localhost:8081/jobs/" + jobID + "/vertices/" + vertexId + "/metrics/" + "?get=0.busyTimeMsPerSecond");
+        url = new URLWrapper(new URL("http://localhost:8081/jobs/" + jobID + "/vertices/" + vertexId + "/metrics/" + "?get=0.busyTimeMsPerSecond"));
         jsonNode = OpenUrlConnection(url);
         JsonNode metricNode = jsonNode.get(0);
         if(metricNode!=null&& metricNode.get("value") != null) {
@@ -114,8 +115,8 @@ public class MetricUtilities {
         return 0L;
     }
 
-    public static JsonNode OpenUrlConnection(URL url) throws IOException {
-        HttpURLConnection con = openConnection(url);
+    public static JsonNode OpenUrlConnection(URLWrapper url) throws Exception {
+        HttpURLConnection con = url.openConnection();
         con.setRequestMethod("GET");
 
         BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
@@ -129,9 +130,5 @@ public class MetricUtilities {
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(sb.toString());
         return jsonNode;
-    }
-
-    private static HttpURLConnection openConnection(URL url) throws IOException {
-        return (HttpURLConnection) url.openConnection();
     }
 }
