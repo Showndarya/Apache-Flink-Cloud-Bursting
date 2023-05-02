@@ -15,7 +15,7 @@ import com.google.gson.JsonObject;
 public class LambdaInvokerUsingURLPayload {
 
     public static String invoke_lambda(String payloadString) throws Exception {
-        InputStream inputStream = LambdaInvokerUsingURLPayload.class.getResourceAsStream("configs/JavaConfig.json");
+        InputStream inputStream = LambdaInvokerUsingURLPayload.class.getResourceAsStream("configs/PythonConfig.json");
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 
         String json="";
